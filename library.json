@@ -1,0 +1,26 @@
+{
+    "name": "carbldc",
+    "version": "1.0.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mx-car/carbldc.git"
+    },
+    "authors": [
+        {
+            "name": "Firat Cakar",
+            "email": "firat.cakar@?",
+            "url": "?",
+            "maintainer": true
+        }
+    ],
+    "build": {
+        "flags": [
+            "-I common/include"
+        ],
+        "srcFilter": [
+            "+<common/src/car/bldc/*.cpp>"
+        ]
+    },
+    "frameworks": "*",
+    "platforms": "*"
+}
