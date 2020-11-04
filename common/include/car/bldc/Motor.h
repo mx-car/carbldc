@@ -16,7 +16,6 @@ struct INHPins {
 
     constexpr INHPins(uint8_t PinU_, uint8_t PinV_, uint8_t PinW_) : InhibitPinU(PinU_), InhibitPinV(PinV_),
                                                                      InhibitPinW(PinW_) {}
-
 };
 
 struct PWMPins {
@@ -44,7 +43,6 @@ struct ISPins {
 
     constexpr ISPins(uint8_t ISPinU_, uint8_t ISPinV_, uint8_t ISPinW_) : ISPinU(ISPinU_), ISPinV(ISPinV_),
                                                                           ISPinW(ISPinW_) {}
-
 };
 
 

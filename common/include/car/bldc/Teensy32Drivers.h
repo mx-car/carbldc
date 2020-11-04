@@ -17,6 +17,8 @@ public:
 
     static void activateInhibitPins(Motor &x);
 
+    static void deactivateInhibitPins(Motor &x);
+
     static void initInhibitPins(Motor &x);
 
     static void updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &motor);

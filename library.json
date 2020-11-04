@@ -22,5 +22,13 @@
         ]
     },
     "frameworks": "*",
-    "platforms": "*"
+    "platforms": "*", 
+ 
+    "dependencies": [
+        {
+            "owner": "bblanchon",
+            "name": "Teensy_ADC",
+            "version": "^8.0.38"
+        }
+    ]
 }

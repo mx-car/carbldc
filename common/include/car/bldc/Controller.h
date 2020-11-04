@@ -13,14 +13,9 @@
 #include "car/bldc/utils.h"
 #include "car/bldc/Teensy32Drivers.h"
 
-#include <car/com/mc/interface.h>
-
 class Controller {
 
 public:
-
-    car::com::objects::State target;
-    car::com::objects::State state;
     
     inline static  uint8_t numberOfMotors = 0;
     Motor * motors[2];
@@ -30,7 +25,11 @@ public:
     void initHardware(uint8_t SPI_CLK);
     static Controller &getInstance();  // Singleton handler
 
-
+    float command[2];                   // command power between 0 and 1
+    float speed[2];                     // speed [rps]
+    float torque[2];                    // current power consumption 
+    int64_t tstamp_state[2];            // timestamp  micros();   
+    int64_t tstamp_command[2];          // timestamp  micros();   
 };
 
 #endif //INC_1MOTOR_REFACTOR_FOC_H

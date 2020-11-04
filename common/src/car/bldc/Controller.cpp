@@ -70,18 +70,24 @@ FASTRUN void Controller::run() {
         if (motors[i]->isTimeForPIDControl()) { //every 0.25 sec
 
             if(i == 0) {
-                if(target.rps[i] > 0) motors[i]->direction = CCW;
+                if(command[i] > 0) motors[i]->direction = CCW;
                 else  motors[i]->direction = CW;
             } else {
-                if(target.rps[i] > 0) motors[i]->direction = CW;
+                if(command[i] > 0) motors[i]->direction = CW;
                 else  motors[i]->direction = CCW;
             }
-            state.rps[i] = VelocityCalculation::getRotationsPerSecond3(*motors[i]);
-            motors[i]->updateSpeedRPS(state.rps[i]);
-            state.stamp = car::com::objects::Time::now();
+            speed[i] = VelocityCalculation::getRotationsPerSecond3(*motors[i]);
+            motors[i]->updateSpeedRPS(speed[i]);
 
             //float speed_command = SpeedPIDController::getSpeedCommand(*motors[i], 30);
-            motors[i]->updateSpeedScalar(fabs(target.rps[i]));
+            motors[i]->updateSpeedScalar(fabs(command[i]));
+            tstamp_state[i] = micros();   
+
+            if(fabs(command[i]) < 0.001){
+                Teensy32Drivers::deactivateInhibitPins(*motors[i]);
+            } else {
+                Teensy32Drivers::activateInhibitPins(*motors[i]);
+            }
         }
 
         SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(*motors[i]);

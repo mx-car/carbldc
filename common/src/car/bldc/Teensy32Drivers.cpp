@@ -29,6 +29,16 @@ void Teensy32Drivers::activateInhibitPins(Motor &x) {
     digitalWriteFast(x.inhibitPins.InhibitPinV, HIGH);
 
 }
+/**
+ * Set Inhibit Pins LOW.
+ * Done only once on continuous SVPWM schemes , called at Controller::initHardware
+ * @param x - motoor
+ */
+void Teensy32Drivers::deactivateInhibitPins(Motor &x) {
+    digitalWriteFast(x.inhibitPins.InhibitPinW, LOW);
+    digitalWriteFast(x.inhibitPins.InhibitPinU, LOW);
+    digitalWriteFast(x.inhibitPins.InhibitPinV, LOW);
+}
 
 /**
  * Updates low level PWM registers with new duty cycle values.
