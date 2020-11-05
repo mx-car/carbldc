@@ -5,11 +5,9 @@
 #ifndef INC_1MOTOR_REFACTOR_FOC_H
 #define INC_1MOTOR_REFACTOR_FOC_H
 
-#include "car/bldc/Motor.h"
 #include "car/bldc/SpeedCalculation.h"
 #include "car/bldc/RotaryEncoderCommnunication.h"
 #include "car/bldc/SVPWM.h"
-#include "car/bldc/PID.h"
 #include "car/bldc/utils.h"
 #include "car/bldc/Teensy32Drivers.h"
 
