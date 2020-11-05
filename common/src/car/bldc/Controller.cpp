@@ -44,6 +44,26 @@ void Controller::initHardware(uint8_t SPI_CLK) {
 }
 
 
+    void Controller::setCommand(float value, uint8_t motor){
+        command[motor] = value;
+        tstamp_command_update = micros();
+    }
+    const float& Controller::getCommand(uint8_t motor) const{
+        return command[motor];
+    }
+    const float& Controller::getSpeed(uint8_t motor) const{
+        return speed[motor];
+    
+    }
+    const float& Controller::getTorque(uint8_t motor) const{
+        return torque[motor];
+    }
+    const int64_t& Controller::getTStampMeasurement() const{
+        return tstamp_state_update;
+    }
+    const int64_t& Controller::getTStampCommand() const{
+        return tstamp_state_update;
+    }
 
 
 /***
@@ -81,7 +101,7 @@ FASTRUN void Controller::run() {
 
             //float speed_command = SpeedPIDController::getSpeedCommand(*motors[i], 30);
             motors[i]->updateSpeedScalar(fabs(command[i]));
-            tstamp_state[i] = micros();   
+            tstamp_state_update = micros();   
 
             if(fabs(command[i]) < 0.001){
                 Teensy32Drivers::deactivateInhibitPins(*motors[i]);
