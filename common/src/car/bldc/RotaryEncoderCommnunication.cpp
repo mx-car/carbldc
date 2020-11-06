@@ -2,7 +2,7 @@
 // Created by firat on 21.01.20.
 //
 
-#include "car/bldc/RotaryEncoderCommnunication.h"
+#include "RotaryEncoderCommnunication.h"
 
 const SPISettings RotaryEncoderCommunication::spiSettings(10000000, MSBFIRST, SPI_MODE1);
 /**

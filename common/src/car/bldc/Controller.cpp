@@ -2,7 +2,7 @@
 // Created by firat on 21.01.20.
 //
 
-#include "car/bldc/Controller.h"
+#include "Controller.h"
 
 /**
  * Singleton
@@ -44,26 +44,6 @@ void Controller::initHardware(uint8_t SPI_CLK) {
 }
 
 
-    void Controller::setCommand(float value, uint8_t motor){
-        command[motor] = value;
-        tstamp_command_update = micros();
-    }
-    const float& Controller::getCommand(uint8_t motor) const{
-        return command[motor];
-    }
-    const float& Controller::getSpeed(uint8_t motor) const{
-        return speed[motor];
-    
-    }
-    const float& Controller::getTorque(uint8_t motor) const{
-        return torque[motor];
-    }
-    const int64_t& Controller::getTStampMeasurement() const{
-        return tstamp_state_update;
-    }
-    const int64_t& Controller::getTStampCommand() const{
-        return tstamp_state_update;
-    }
 
 
 /***
@@ -88,26 +68,10 @@ FASTRUN void Controller::run() {
         motors[i]->updateRotaryEncoderPosition(rotaryEncoderValue0);
 
         if (motors[i]->isTimeForPIDControl()) { //every 0.25 sec
-
-            if(i == 0) {
-                if(command[i] > 0) motors[i]->direction = CCW;
-                else  motors[i]->direction = CW;
-            } else {
-                if(command[i] > 0) motors[i]->direction = CW;
-                else  motors[i]->direction = CCW;
-            }
-            speed[i] = VelocityCalculation::getRotationsPerSecond3(*motors[i]);
-            motors[i]->updateSpeedRPS(speed[i]);
-
-            //float speed_command = SpeedPIDController::getSpeedCommand(*motors[i], 30);
-            motors[i]->updateSpeedScalar(fabs(command[i]));
-            tstamp_state_update = micros();   
-
-            if(fabs(command[i]) < 0.001){
-                Teensy32Drivers::deactivateInhibitPins(*motors[i]);
-            } else {
-                Teensy32Drivers::activateInhibitPins(*motors[i]);
-            }
+            state.rps[i] = VelocityCalculation::getRotationsPerSecond3(*motors[i]);
+            motors[i]->updateSpeedRPS(state.rps[i]);
+            state.stamp = car::com::objects::Time::now();
+            motors[i]->updateSpeedScalar(target.rps[i]);
         }
 
         SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(*motors[i]);

@@ -2,7 +2,7 @@
 // Created by firat on 25.01.20.
 //
 
-#include "car/bldc/utils.h"
+#include "utils.h"
 uint16_t SerialHelper::plot_counter=0;
 float DerivateFilter::s = 0;
 float DerivateFilter::s_dot = 0;
@@ -29,9 +29,9 @@ const CommandParameters & SerialHelper::setVelandSteeringAngleFromSerial() {
     }
     if (index > 6) { // 7 bytes are transmitted per command
         if (transmit_buffer[0] == 'B') {
-            cmd_parameters.direction = Direction::CCW;
+            cmd_parameters.direction = Direction::Backward;
         } else if (transmit_buffer[0] == 'F') {
-            cmd_parameters.direction = Direction::CW;
+            cmd_parameters.direction = Direction::Forward;
 
         } else {
             cmd_parameters.direction = Direction::STOP;

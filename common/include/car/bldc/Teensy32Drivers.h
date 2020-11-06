@@ -6,8 +6,8 @@
 #define INC_2MOTORNEWBOARD_TEENSY32DRIVERS_H
 
 #include "Arduino.h"
-#include "car/bldc/Motor.h"
-#include "car/bldc/SVPWM.h"
+#include "Motor.h"
+#include "SVPWM.h"
 #include <ADC.h>
 
 
@@ -16,8 +16,6 @@ public:
     Teensy32Drivers() {};
 
     static void activateInhibitPins(Motor &x);
-
-    static void deactivateInhibitPins(Motor &x);
 
     static void initInhibitPins(Motor &x);
 

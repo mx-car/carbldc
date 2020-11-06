@@ -6,8 +6,8 @@
 #define INC_1MOTOR_REFACTOR_SVPWM_H
 
 
-#include "car/bldc/Motor.h"
-#include "car/bldc/SVPWM_LUT.h"
+#include "Motor.h"
+#include "SVPWM_LUT.h"
 
 
 struct SPWMDutyCycles{
@@ -25,7 +25,7 @@ struct SPWMDutyCycles{
 class SVPWM {
 private:
     static constexpr uint16_t LUTSize = LUTGenerator::LUTSize;
-    static constexpr uint16_t angleOffset = LUTSize/4; // @TODO calculate -90 + 90, plot for variations
+    static constexpr uint16_t direction_offset = LUTSize / 4; // @TODO calculate -90 + 90, plot for variations
     static constexpr auto LUT = LUTGenerator::generate();
     static constexpr ModulationIndexScalingParams modulationIndexParams = LUTGenerator::calculateModulationIndexScalingOffsetParameters();
     static uint16_t scaleDutyCyclesToModulationIndex(float scalar);

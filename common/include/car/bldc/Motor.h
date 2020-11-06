@@ -16,6 +16,7 @@ struct INHPins {
 
     constexpr INHPins(uint8_t PinU_, uint8_t PinV_, uint8_t PinW_) : InhibitPinU(PinU_), InhibitPinV(PinV_),
                                                                      InhibitPinW(PinW_) {}
+
 };
 
 struct PWMPins {
@@ -43,11 +44,12 @@ struct ISPins {
 
     constexpr ISPins(uint8_t ISPinU_, uint8_t ISPinV_, uint8_t ISPinW_) : ISPinU(ISPinU_), ISPinV(ISPinV_),
                                                                           ISPinW(ISPinW_) {}
+
 };
 
 
 enum Direction {
-    CW = -1, STOP, CCW
+    Forward = -1, STOP, Backward
 };
 
 
@@ -65,7 +67,7 @@ public:
     const PWMPins initPins;
     const uint8_t CSPin;
     const ISPins IsPins;
-    Direction direction = Direction::CW;
+    Direction direction = Direction::Forward;
     float speedRPS = 0;
     float torque = 0;
     float speedScalar = 0; // actual speed command 0.. 100
@@ -75,35 +77,24 @@ public:
     int32_t encoderCumulativeValue = 0;
     int16_t angleOffset = 0;
     uint16_t PIDCounter = 0;
-    bool rightWheel = false;
+    int32_t rightWheel = 1;
+    elapsedMicros start;
 
     void setAsRightWheel() {
-        rightWheel = true;
+        rightWheel = -1;
     }
 
-    bool isTimeForPIDControl(){
-        if(++PIDCounter == (SVPWM_FREQUENCY/PID_FREQUENCY)){
+    bool isTimeForPIDControl() {
+        if (++PIDCounter == (SVPWM_FREQUENCY / PID_FREQUENCY)) {
             PIDCounter = 0;
             return true;
-        }
-        else{
+        } else {
             return false;
         }
 
 
     };
-    /**
-     * This function is supposed to set the sensor offset at initialization after calculating the sensor offset.
-     * @param sensorOffset_ - is the -supposedly- fixed offset between raw rotary encoder readings and
-     * the rotor flux angle.
-     * @TODO: Not being used. Find an automated way to calculate the offset and use this at start up.
-     * @TODO: change naming, field weakening is something else
-     */
 
-    void setEncoderCumulativeValueToZero() {
-        //Serial.println(encoderCumulativeValue);
-        encoderCumulativeValue = 0;
-    }
 
     void setAngleOffset(int16_t _angleOffset) {
         angleOffset = _angleOffset;
@@ -112,7 +103,7 @@ public:
 
     int32_t calculateAngleOffsetFromSpeedCommand(uint32_t speed_command) {
         if (rightWheel) {
-            if (direction == CCW) {
+            if (direction == Backward) {
                 int32_t res = angleOffset - (100 - speed_command);
                 return res;
             } else {
@@ -120,7 +111,7 @@ public:
 
             }
         } else {
-            if (direction == CW) {
+            if (direction == Forward) {
                 return angleOffset + (100 - speed_command);
             } else {
                 return angleOffset - (speed_command);
@@ -130,25 +121,15 @@ public:
         }
     }
 
-    /**
-     * This function cumulatively adds the difference between rotary encoder position readings to calculate RPM later on.
-     * The encoder values overflow after 16384 so this is taken care of.
-     * @TODO : might behave weirdly at abrupt direction changes, needs more testing
-     * @param rotPos : raw 14 bit rotary encoder reading from SPI
-     */
-    void cumulativeAdd(uint16_t rotPos) {
 
-        uint16_t diff = abs(rotPos - previousRotaryEncoderValue);
-        if (diff > 16200) {
-            diff = ENCODER_RESOLUTION - diff;
-        }
-
-        previousRotaryEncoderValue = rotPos;
-        encoderCumulativeValue += diff;
-
-
+    void startCounting() {
+        elapsedMicros temp;
+        start = temp;
     }
 
+    uint32_t getTimeDifference() const {
+        return start;
+    }
 
     /**
      * Raw rotary encoder position can not be used to determine the LUT index since it gives the physical position of the
@@ -168,8 +149,8 @@ public:
 
     }
 
-    void updatePrevRotaryEncoderPosition(uint16_t rotPos) {
-        previousRotaryEncoderValue = rotPos;
+    void updatePrevRotaryEncoderPosition() {
+        previousRotaryEncoderValue = rotaryEncoderPosition;
 
     }
 
@@ -183,6 +164,13 @@ public:
      * @param speed - a value between 0 and 100
      */
     void updateSpeedScalar(float_t speed) {
+        if(speed > 0){
+            direction = Direction::Forward;
+        }
+        else{
+            direction = Direction::Backward;
+            speed *= -1.0f;
+        }
         speedScalar = speed;
     };
 

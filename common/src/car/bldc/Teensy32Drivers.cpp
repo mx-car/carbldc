@@ -2,7 +2,7 @@
 // Created by firat on 29.08.20.
 //
 
-#include "car/bldc/Teensy32Drivers.h"
+#include "Teensy32Drivers.h"
 
 
 /**
@@ -29,16 +29,6 @@ void Teensy32Drivers::activateInhibitPins(Motor &x) {
     digitalWriteFast(x.inhibitPins.InhibitPinV, HIGH);
 
 }
-/**
- * Set Inhibit Pins LOW.
- * Done only once on continuous SVPWM schemes , called at Controller::initHardware
- * @param x - motoor
- */
-void Teensy32Drivers::deactivateInhibitPins(Motor &x) {
-    digitalWriteFast(x.inhibitPins.InhibitPinW, LOW);
-    digitalWriteFast(x.inhibitPins.InhibitPinU, LOW);
-    digitalWriteFast(x.inhibitPins.InhibitPinV, LOW);
-}
 
 /**
  * Updates low level PWM registers with new duty cycle values.
@@ -48,7 +38,6 @@ void Teensy32Drivers::deactivateInhibitPins(Motor &x) {
  */
 void Teensy32Drivers::updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &motor) {
 
-#if defined(NEW_BOARD)
     if (motor.initPins.InitPinW == 10 || motor.initPins.InitPinW == 22 || motor.initPins.InitPinW == 23) {
 
         FTM0_C3V = x.inDutyCycleW; //Teensy pin 10 -> FTM0_CH3pardom
@@ -63,22 +52,6 @@ void Teensy32Drivers::updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &mot
 
 
     }
-#else
-
-    if (motor.initPins.InitPinW == 21 || motor.initPins.InitPinW == 22 || motor.initPins.InitPinW == 23) {
-
-        FTM0_C6V = x.inDutyCycleW;  // Teensy pin 21 -> FTM0_CH6
-        FTM0_C0V = x.inDutyCycleV;  // Teensy pin 22 (A8) -> FTM0_CH0
-        FTM0_C1V = x.inDutyCycleU;  // Teensy pin 23 (A9) -> FTM0_CH1
-
-    } else {
-        FTM0_C3V = x.inDutyCycleW; //Teensy pin 10 -> FTM0_CH3pardom
-        FTM0_C7V = x.inDutyCycleU; //Teensy pin 5 -> FTM0_CH7
-        FTM0_C4V = x.inDutyCycleV; //Teensy pin  6 -> FTM0_CH4
-
-
-    }
-#endif
 
 }
 
@@ -106,7 +79,6 @@ void Teensy32Drivers::initPWMPins() {
     FTM0_MOD = (F_BUS / PWMFrequency) / 2;
     // FTM0_C6SC |= FTM_CSC_CHIE
 
-#if defined(NEW_BOARD)
     FTM0_C3SC = 0b00101000;
     FTM0_C3V = 0; //50%
     PORTC_PCR4 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 10 -> FTM0_CH3
@@ -133,36 +105,6 @@ void Teensy32Drivers::initPWMPins() {
         PORTC_PCR3 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 9 -> FTM0_CH2
     }
 
-#else
-
-    FTM0_C6SC = 0b00101000;
-    FTM0_C6V = 0; //50%
-    PORTD_PCR6 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 21 -> FTM0_CH6
-
-    FTM0_C0SC = 0b00101000;
-    FTM0_C0V = 0; //50%
-    PORTC_PCR1 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 22 (A8) -> FTM0_CH0
-
-    FTM0_C1SC = 0b00101000;
-    FTM0_C1V = 0; //50%
-    PORTC_PCR2 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 23 (A9) -> FTM0_CH1
-
-    if (numberOfMotors > 1) {
-        FTM0_C7SC = 0b00101000;
-        FTM0_C7V = 0; //50%
-        PORTD_PCR7 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 5 (A8) -> FTM0_CH7
-
-        FTM0_C3SC = 0b00101000;
-        FTM0_C3V = 0; //50%
-        PORTC_PCR4 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 10 -> FTM0_CH3
-
-        FTM0_C4SC = 0b00101000;
-        FTM0_C4V = 0; //50%
-        PORTD_PCR4 |= PORT_PCR_MUX(4) | PORT_PCR_DSE | PORT_PCR_SRE; //Teensy pin 6 -> FTM0_CH4
-
-    }
-
-#endif
     FTM0_CNTIN = 0x00;
 
 
