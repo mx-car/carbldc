@@ -6,8 +6,8 @@
 #define INC_1MOTOR_REFACTOR_SVPWM_H
 
 
-#include "Motor.h"
-#include "SVPWM_LUT.h"
+#include "car/bldc/Motor.h"
+#include "car/bldc/SVPWM_LUT.h"
 
 
 struct SPWMDutyCycles{

@@ -7,7 +7,7 @@
 
 #include <Arduino.h>
 #include <SPI.h>
-#include "Motor.h"
+#include "car/bldc/Motor.h"
 
 
 

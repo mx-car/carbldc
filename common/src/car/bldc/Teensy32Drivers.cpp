@@ -2,7 +2,7 @@
 // Created by firat on 29.08.20.
 //
 
-#include "Teensy32Drivers.h"
+#include "car/bldc/Teensy32Drivers.h"
 
 
 /**
@@ -28,6 +28,16 @@ void Teensy32Drivers::activateInhibitPins(Motor &x) {
     digitalWriteFast(x.inhibitPins.InhibitPinU, HIGH);
     digitalWriteFast(x.inhibitPins.InhibitPinV, HIGH);
 
+}
+/**
+ * Set Inhibit Pins LOW.
+ * Done only once on continuous SVPWM schemes , called at Controller::initHardware
+ * @param x - motoor
+ */
+void Teensy32Drivers::deactivateInhibitPins(Motor &x) {
+    digitalWriteFast(x.inhibitPins.InhibitPinW, LOW);
+    digitalWriteFast(x.inhibitPins.InhibitPinU, LOW);
+    digitalWriteFast(x.inhibitPins.InhibitPinV, LOW);
 }
 
 /**

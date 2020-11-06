@@ -7,10 +7,10 @@
 
 
 #include <cstdint>
-#include "SVPWM.h"
-#include "Teensy32Drivers.h"
-#include "RotaryEncoderCommnunication.h"
-#include "SpeedCalculation.h"
+#include "car/bldc/SVPWM.h"
+#include "car/bldc/Teensy32Drivers.h"
+#include "car/bldc/RotaryEncoderCommnunication.h"
+#include "car/bldc/SpeedCalculation.h"
 
 struct CommandParameters {
     int32_t angle;

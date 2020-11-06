@@ -5,7 +5,7 @@
 #ifndef INC_1MOTOR_REFACTOR_SPEEDCALCULATION_H
 #define INC_1MOTOR_REFACTOR_SPEEDCALCULATION_H
 
-#include "Motor.h"
+#include "car/bldc/Motor.h"
 
 /**
  * VelocityCalculation class - The rotary encoder readings are taken a fixed time interval - every duty cycle -

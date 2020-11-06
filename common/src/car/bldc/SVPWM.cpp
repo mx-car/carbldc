@@ -2,7 +2,7 @@
 // Created by firat on 21.01.20.
 //
 
-#include "SVPWM.h"
+#include "car/bldc/SVPWM.h"
 
 //ModulationIndexScalingParams SVPWM::modulationIndexParams = LUTGenerator::calculateModulationIndexScalingOffsetParameters();
 /***
