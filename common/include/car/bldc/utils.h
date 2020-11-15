@@ -11,6 +11,7 @@
 #include "car/bldc/Teensy32Drivers.h"
 #include "car/bldc/RotaryEncoderCommnunication.h"
 #include "car/bldc/SpeedCalculation.h"
+#include "Controller.h"
 
 struct CommandParameters {
     int32_t angle;
@@ -59,7 +60,12 @@ public:
 
 class Diagnostics {
 public:
+    struct FluxAngleOffsetCalibrationParams{
+        uint32_t angle_offset;
+        float variance;
+        float average_rps;
 
+    };
     static int16_t calculateSensorOffset(Motor &motor, const uint16_t LUTindex);
 
     static void testMotors(Motor &x);
@@ -69,6 +75,14 @@ public:
     static void primitiveSpinMotor(Motor &motor,uint32_t delayMicroSecs = 12);
 
     static void speedSweep(Motor &motor);
+
+    static FluxAngleOffsetCalibrationParams calculateParams(uint32_t angle_offset, float *rps, uint32_t rps_list_size);
+
+    static float calculate_variance(float mean, float* rps_list, uint32_t rps_list_size);
+
+    static void calculateAndPrintOptimalFluxAngle(Motor &m);
 };
+
+
 
 #endif //INC_1MOTOR_REFACTOR_UTILS_H
