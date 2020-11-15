@@ -51,13 +51,13 @@ void Teensy32Drivers::updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &mot
     if (motor.initPins.InitPinW == 10 || motor.initPins.InitPinW == 22 || motor.initPins.InitPinW == 23) {
 
         FTM0_C3V = x.inDutyCycleW; //Teensy pin 10 -> FTM0_CH3pardom
-        FTM0_C0V = x.inDutyCycleV;  // Teensy pin 22 (A8) -> FTM0_CH0
-        FTM0_C1V = x.inDutyCycleU;  // Teensy pin 23 (A9) -> FTM0_CH1
+        FTM0_C1V = x.inDutyCycleV;  // Teensy pin 22 (A8) -> FTM0_CH0
+        FTM0_C0V = x.inDutyCycleU;  // Teensy pin 23 (A9) -> FTM0_CH1
 
     } else {
 
-        FTM0_C7V = x.inDutyCycleU; //Teensy pin 5 -> FTM0_CH7
-        FTM0_C4V = x.inDutyCycleV; //Teensy pin  6 -> FTM0_CH4
+        FTM0_C7V = x.inDutyCycleV; //Teensy pin 5 -> FTM0_CH7
+        FTM0_C4V = x.inDutyCycleU; //Teensy pin  6 -> FTM0_CH4
         FTM0_C2V = x.inDutyCycleW; // Teensy pin 9 -> FTM0_CH2
 
 

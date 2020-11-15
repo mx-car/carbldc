@@ -144,7 +144,7 @@ public:
      * @param rotPos Raw 14 bit Encoder Value reading
      */
     void updateRotaryEncoderPosition(uint16_t rotPos) {
-        scaledRotaryEncoderPosition = 1489 - (rotPos % 1489);
+        scaledRotaryEncoderPosition = (rotPos % 1489);
         rotaryEncoderPosition = rotPos;
 
     }

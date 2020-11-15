@@ -36,7 +36,7 @@ SPWMDutyCycles SVPWM::calculateDutyCycles(Motor &x){
     if(x.speedScalar > 12) {
         uint16_t modulationIndexOffset = scaleDutyCyclesToModulationIndex(x.speedScalar);
         uint16_t base =
-                (x.scaledRotaryEncoderPosition + (direction_offset + x.angleOffset) * x.direction + LUTSize) % LUTSize;
+                (x.scaledRotaryEncoderPosition + x.angleOffset + (direction_offset  * x.direction ) + LUTSize) % LUTSize;
         uint16_t LUTIndexW = base;
         uint16_t LUTIndexV = (base + (LUTSize / 3)) % LUTSize;
         uint16_t LUTIndexU = (base + (2 * (LUTSize / 3))) % LUTSize;
