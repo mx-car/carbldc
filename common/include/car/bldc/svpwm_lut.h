@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <array>
 
+namespace car::bldc{
 
 struct ModulationIndexScalingParams{
     constexpr ModulationIndexScalingParams(float m, float c): offsetParam_m(m), offsetParam_c(c){};
@@ -220,4 +221,5 @@ public:
 
 
 };
+}
 #endif //INC_2MOTORNEWBOARD_SVPWM_LUT_H

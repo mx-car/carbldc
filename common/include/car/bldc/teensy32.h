@@ -2,18 +2,19 @@
 // Created by firat on 29.08.20.
 //
 
-#ifndef INC_2MOTORNEWBOARD_TEENSY32DRIVERS_H
-#define INC_2MOTORNEWBOARD_TEENSY32DRIVERS_H
+#ifndef INC_2MOTORNEWBOARD_TEENSY32_H
+#define INC_2MOTORNEWBOARD_TEENSY32_H
 
 #include "Arduino.h"
-#include "car/bldc/Motor.h"
-#include "car/bldc/SVPWM.h"
+#include "car/bldc/motor.h"
+#include "car/bldc/svpwm.h"
 #include <ADC.h>
 
 
-class Teensy32Drivers {
+namespace car::bldc{
+class Teensy32 {
 public:
-    Teensy32Drivers() {};
+    Teensy32() {};
 
     static void activateInhibitPins(Motor &x);
 
@@ -36,5 +37,5 @@ private:
     static constexpr uint8_t numberOfMotors = 2; // @TODO take it as a define or discard here, you can init those pwm pins by default
 
 };
-
-#endif //INC_2MOTORNEWBOARD_TEENSY32DRIVERS_H
+}
+#endif //INC_2MOTORNEWBOARD_TEENSY32_H

@@ -6,9 +6,10 @@
 #define INC_1MOTOR_REFACTOR_SVPWM_H
 
 
-#include "car/bldc/Motor.h"
-#include "car/bldc/SVPWM_LUT.h"
+#include "car/bldc/motor.h"
+#include "car/bldc/svpwm_lut.h"
 
+namespace car::bldc{
 
 struct SPWMDutyCycles{
     uint16_t inDutyCycleW;
@@ -36,4 +37,5 @@ public:
     static const uint16_t getLutSize() {return LUTSize;}
 
 };
+}
 #endif //INC_1MOTOR_REFACTOR_SVPWM_H

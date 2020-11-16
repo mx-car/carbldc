@@ -3,6 +3,10 @@
 //
 
 #include "car/bldc/utils.h"
+
+
+using namespace car::bldc;
+
 uint16_t SerialHelper::plot_counter=0;
 float DerivateFilter::s = 0;
 float DerivateFilter::s_dot = 0;
@@ -73,7 +77,7 @@ void Diagnostics::primitiveSpin(uint16_t LUTindex, Motor &motor) {
     uint16_t dutyCycleV = SVPWM::getLUT()[(LUTindex + (LUTSize / 3)) % LUTSize];
     uint16_t dutyCycleU = SVPWM::getLUT()[(LUTindex + (LUTSize / 3) * 2) % LUTSize];
     SPWMDutyCycles x{dutyCycleW, dutyCycleV, dutyCycleU};
-    Teensy32Drivers::updatePWMPinsDutyCycle(x, motor);
+    Teensy32::updatePWMPinsDutyCycle(x, motor);
 
 
 }
@@ -84,14 +88,14 @@ int16_t Diagnostics::calculateSensorOffset(Motor &motor,
     uint16_t dutyCycleU = SVPWM::getLUT()[(LUTindex + (LUTSize / 3)) % LUTSize];
     uint16_t dutyCycleV = SVPWM::getLUT()[(LUTindex + (LUTSize / 3) * 2) % LUTSize];
     SPWMDutyCycles x{dutyCycleW, dutyCycleV, dutyCycleU};
-    Teensy32Drivers::updatePWMPinsDutyCycle(x, motor);
+    Teensy32::updatePWMPinsDutyCycle(x, motor);
 
     delay(500);
 
     Serial.print("\nCurrent stator flux index: ");
     Serial.println(LUTindex);
 
-    uint16_t encoderVal = RotaryEncoderCommunication::SPITransfer(motor);
+    uint16_t encoderVal = RotaryEncoder::SPITransfer(motor);
     uint16_t encoderValScaled = encoderVal % LUTSize;
     Serial.print(" Modulo scaled encoder reading: ");
     Serial.println(encoderValScaled);
@@ -152,8 +156,8 @@ void Diagnostics::speedSweep(Motor & motor) {
 
     for (int i = 1; i < 2 /* numberOfMotors */ ; ++i) {
 
-        uint16_t rotaryEncoderValue0 = RotaryEncoderCommunication::SPITransfer(motor);
-        uint16_t rotaryEncoderValue = RotaryEncoderCommunication::SPITransfer(motor);
+        uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(motor);
+        uint16_t rotaryEncoderValue = RotaryEncoder::SPITransfer(motor);
 
         uint16_t diff = abs(prev - rotaryEncoderValue);
         if (diff > 30 && diff < 16365) {
@@ -166,7 +170,7 @@ void Diagnostics::speedSweep(Motor & motor) {
         motor.updateRotaryEncoderPosition(rotaryEncoderValue);
 
         if (motor.isTimeForPIDControl()) { //20 times a sec
-            float_t rps = VelocityCalculation::getRotationsPerSecond3(motor);
+            float_t rps = RotaryMeasurement::getRotationsPerSecond3(motor);
             motor.updateSpeedRPS(rps);
             motor.updateSpeedScalar(speed_command);
             if (speed_increase_counter < values_to_add_up) {
@@ -193,7 +197,7 @@ void Diagnostics::speedSweep(Motor & motor) {
         }
 
         SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(motor);
-        Teensy32Drivers::updatePWMPinsDutyCycle(dutyCycles, motor);
+        Teensy32::updatePWMPinsDutyCycle(dutyCycles, motor);
 
 
     }
@@ -244,12 +248,12 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
 
     for (int i = 0; i < 1 /* numberOfMotors */ ; ++i) {
 
-        uint16_t rotaryEncoderValue0 = RotaryEncoderCommunication::SPITransfer(m);
+        uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
         m.updateRotaryEncoderPosition(rotaryEncoderValue0);
 
 
         if (m.isTimeForPIDControl()) { //every 0.25 sec
-            float rps = VelocityCalculation::getRotationsPerSecond3(m);
+            float rps = RotaryMeasurement::getRotationsPerSecond3(m);
             m.updateSpeedRPS(rps);
             rps_list[rps_ctr++] = rps;
         }
@@ -273,7 +277,7 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
         }
 
         SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(m);
-        Teensy32Drivers::updatePWMPinsDutyCycle(dutyCycles, m);
+        Teensy32::updatePWMPinsDutyCycle(dutyCycles, m);
     }
 }
 

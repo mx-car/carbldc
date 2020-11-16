@@ -2,16 +2,17 @@
 // Created by firat on 29.08.20.
 //
 
-#include "car/bldc/Teensy32Drivers.h"
+#include "car/bldc/teensy32.h"
 
+using namespace car::bldc;
 
 /**
  * Configure Inhibit Pins as Output.
- * Done only once, called at Controller::initHardware
+ * Done only once, called at Driver::initHardware
  * @param x - motor
  */
 
-void Teensy32Drivers::initInhibitPins(Motor &x) {
+void Teensy32::initInhibitPins(Motor &x) {
     pinMode(x.inhibitPins.InhibitPinW, OUTPUT);
     pinMode(x.inhibitPins.InhibitPinU, OUTPUT);
     pinMode(x.inhibitPins.InhibitPinV, OUTPUT);
@@ -20,10 +21,10 @@ void Teensy32Drivers::initInhibitPins(Motor &x) {
 
 /**
  * Set Inhibit Pins HIGH.
- * Done only once on continuous SVPWM schemes , called at Controller::initHardware
+ * Done only once on continuous SVPWM schemes , called at Driver::initHardware
  * @param x - motoor
  */
-void Teensy32Drivers::activateInhibitPins(Motor &x) {
+void Teensy32::activateInhibitPins(Motor &x) {
     digitalWriteFast(x.inhibitPins.InhibitPinW, HIGH);
     digitalWriteFast(x.inhibitPins.InhibitPinU, HIGH);
     digitalWriteFast(x.inhibitPins.InhibitPinV, HIGH);
@@ -31,10 +32,10 @@ void Teensy32Drivers::activateInhibitPins(Motor &x) {
 }
 /**
  * Set Inhibit Pins LOW.
- * Done only once on continuous SVPWM schemes , called at Controller::initHardware
+ * Done only once on continuous SVPWM schemes , called at Driver::initHardware
  * @param x - motoor
  */
-void Teensy32Drivers::deactivateInhibitPins(Motor &x) {
+void Teensy32::deactivateInhibitPins(Motor &x) {
     digitalWriteFast(x.inhibitPins.InhibitPinW, LOW);
     digitalWriteFast(x.inhibitPins.InhibitPinU, LOW);
     digitalWriteFast(x.inhibitPins.InhibitPinV, LOW);
@@ -46,7 +47,7 @@ void Teensy32Drivers::deactivateInhibitPins(Motor &x) {
  * @param x - SVPWM duty cycles struct
  * @param motor - motor
  */
-void Teensy32Drivers::updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &motor) {
+void Teensy32::updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &motor) {
 
     if (motor.initPins.InitPinW == 10 || motor.initPins.InitPinW == 22 || motor.initPins.InitPinW == 23) {
 
@@ -72,7 +73,7 @@ void Teensy32Drivers::updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &mot
  * - TOF interrupt
  * @TODO: try other interrupt options to have more time
  */
-void Teensy32Drivers::initPWMPins() {
+void Teensy32::initPWMPins() {
     FTM0_SC = 0; // required for other setup
 
     FTM0_CONF = 0xC0; //set up BDM in 11, FTM Counter functional -> 0000 1101 0000 0000
@@ -128,10 +129,10 @@ void Teensy32Drivers::initPWMPins() {
 
 /**
  * Low level function to activate ADC peripheral
- * called once at Controller::initHardware
+ * called once at Driver::initHardware
  */
 
-void Teensy32Drivers::initADCconversions() {
+void Teensy32::initADCconversions() {
 
     pinMode(ADC_PIN, INPUT);
     adc.adc0->setAveraging(4); // set number of averages
@@ -146,7 +147,7 @@ void Teensy32Drivers::initADCconversions() {
  * Simple function to get speed values from an Potentiometer
  * @return
  */
-float Teensy32Drivers::setSpeedFromADC() {
+float Teensy32::setSpeedFromADC() {
     static float speed_cmd = 0;
     if (adc.adc0->isComplete()) {
         uint32_t value1 = adc.analogReadContinuous(ADC_PIN);

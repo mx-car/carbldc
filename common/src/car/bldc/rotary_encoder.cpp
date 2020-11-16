@@ -2,15 +2,17 @@
 // Created by firat on 21.01.20.
 //
 
-#include "car/bldc/RotaryEncoderCommnunication.h"
+#include "car/bldc/rotary_encoder.h"
 
-const SPISettings RotaryEncoderCommunication::spiSettings(10000000, MSBFIRST, SPI_MODE1);
+using namespace car::bldc;
+
+const SPISettings RotaryEncoder::spiSettings(10000000, MSBFIRST, SPI_MODE1);
 /**
  * Inits SPI peripheral. This function has to be called before any SPI communication
- * and is called at Controller::initHardware
+ * and is called at Driver::initHardware
  * @param SPI_CLK - The SPI Clock Pin. It is either 13 or 14
  */
-void RotaryEncoderCommunication::initSPI(uint8_t SPI_CLK) {
+void RotaryEncoder::initSPI(uint8_t SPI_CLK) {
     SPI.begin();
     SPI.setSCK(SPI_CLK);
 
@@ -22,7 +24,7 @@ void RotaryEncoderCommunication::initSPI(uint8_t SPI_CLK) {
  * @param x - Motor object
  * @return - 14 bit rotary encoder position
  */
-uint16_t RotaryEncoderCommunication::SPITransfer(const Motor &x) {
+uint16_t RotaryEncoder::SPITransfer(const Motor &x) {
     SPI.beginTransaction(spiSettings);
     delayMicroseconds(1);
     //SPI settings according to sensor datasheet: clock: max. 10MHz | MSB first | SPI Mode 1  | CPOL=0, CPHA= 1
@@ -56,11 +58,11 @@ uint16_t RotaryEncoderCommunication::SPITransfer(const Motor &x) {
 
 /**
  * Configures CS pin as Output and set it to HIGH (Inactive). Must be called once before any SPI Communication
- * is called at Controller::initHardware for each motor.
+ * is called at Driver::initHardware for each motor.
  * @param x - Motor object to get the corresponding Chip Select Pin
  */
 
-void RotaryEncoderCommunication::initMotorCSPins(const Motor &x) {
+void RotaryEncoder::initMotorCSPins(const Motor &x) {
     pinMode(x.CSPin, OUTPUT);
     digitalWrite(x.CSPin, HIGH);
 

@@ -5,13 +5,15 @@
 #ifndef INC_1MOTOR_REFACTOR_FOC_H
 #define INC_1MOTOR_REFACTOR_FOC_H
 
-#include "car/bldc/SpeedCalculation.h"
-#include "car/bldc/RotaryEncoderCommnunication.h"
-#include "car/bldc/SVPWM.h"
+#include "car/bldc/rotary_measurement.h"
+#include "car/bldc/rotary_encoder.h"
+#include "car/bldc/svpwm.h"
 #include "car/bldc/utils.h"
-#include "car/bldc/Teensy32Drivers.h"
+#include "car/bldc/teensy32.h"
 
-class Controller {
+namespace car::bldc{
+
+class Driver {
 
 public:
     
@@ -21,7 +23,7 @@ public:
 
     void registerMotors(Motor *m_ptr);
     void initHardware(uint8_t SPI_CLK);
-    static Controller &getInstance();  // Singleton handler
+    static Driver &getInstance();  // Singleton handler
 
     /**
      * Sets a new motor power value
@@ -67,5 +69,5 @@ private:
     int64_t tstamp_state_update;        // timestamp  micros();
     int64_t tstamp_command_update;      // timestamp  micros();
 };
-
+}
 #endif //INC_1MOTOR_REFACTOR_FOC_H

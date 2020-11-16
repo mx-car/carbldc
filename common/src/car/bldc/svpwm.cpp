@@ -2,7 +2,7 @@
 // Created by firat on 21.01.20.
 //
 
-#include "car/bldc/SVPWM.h"
+#include "car/bldc/svpwm.h"
 
 //ModulationIndexScalingParams SVPWM::modulationIndexParams = LUTGenerator::calculateModulationIndexScalingOffsetParameters();
 /***
@@ -30,6 +30,7 @@
  * @param x - motor object
  * @return SVPWM duty cycles for each phase of a motor
  */
+using namespace car::bldc;
 SPWMDutyCycles SVPWM::calculateDutyCycles(Motor &x){
     //TODO do field weakening
     SPWMDutyCycles temp{0,0,0};

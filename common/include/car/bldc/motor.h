@@ -8,6 +8,7 @@
 #include <Arduino.h>
 #include <array>
 
+namespace car::bldc{
 
 struct INHPins {
     const uint8_t InhibitPinU;
@@ -176,6 +177,6 @@ public:
 
 
 };
-
+}
 
 #endif //INC_1MOTOR_REFACTOR_MOTOR_H

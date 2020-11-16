@@ -2,16 +2,17 @@
 // Created by firat on 21.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_ROTARYENCODERCOMMNUNICATION_H
-#define INC_1MOTOR_REFACTOR_ROTARYENCODERCOMMNUNICATION_H
+#ifndef INC_1MOTOR_REFACTOR_ROTARYENCODER_H
+#define INC_1MOTOR_REFACTOR_ROTARYENCODER_H
 
 #include <Arduino.h>
 #include <SPI.h>
-#include "car/bldc/Motor.h"
+#include "car/bldc/motor.h"
 
 
+namespace car::bldc{
 
-class RotaryEncoderCommunication{
+class RotaryEncoder{
 private:
 
     static const SPISettings spiSettings; //i
@@ -23,4 +24,5 @@ public:
     static void initMotorCSPins(const Motor &x);
 
 };
-#endif //INC_1MOTOR_REFACTOR_ROTARYENCODERCOMMNUNICATION_H
+}
+#endif //INC_1MOTOR_REFACTOR_ROTARYENCODER_H

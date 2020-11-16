@@ -1,2 +1,2 @@
 # carbldc
-Dual BLDC Motor Controller
+Dual BLDC Motor Driver

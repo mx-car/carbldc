@@ -7,11 +7,13 @@
 
 
 #include <cstdint>
-#include "car/bldc/SVPWM.h"
-#include "car/bldc/Teensy32Drivers.h"
-#include "car/bldc/RotaryEncoderCommnunication.h"
-#include "car/bldc/SpeedCalculation.h"
-#include "Controller.h"
+#include "car/bldc/svpwm.h"
+#include "car/bldc/teensy32.h"
+#include "car/bldc/rotary_encoder.h"
+#include "car/bldc/rotary_measurement.h"
+#include "driver.h"
+
+namespace car::bldc{
 
 struct CommandParameters {
     int32_t angle;
@@ -83,6 +85,6 @@ public:
     static void calculateAndPrintOptimalFluxAngle(Motor &m);
 };
 
-
+}
 
 #endif //INC_1MOTOR_REFACTOR_UTILS_H

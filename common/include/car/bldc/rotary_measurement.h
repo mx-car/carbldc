@@ -2,17 +2,18 @@
 // Created by firat on 21.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_SPEEDCALCULATION_H
-#define INC_1MOTOR_REFACTOR_SPEEDCALCULATION_H
+#ifndef INC_1MOTOR_REFACTOR_ROTARYMEASUREMENT_H
+#define INC_1MOTOR_REFACTOR_ROTARYMEASUREMENT_H
 
-#include "car/bldc/Motor.h"
+#include "car/bldc/motor.h"
 
+namespace car::bldc{
 /**
- * VelocityCalculation class - The rotary encoder readings are taken a fixed time interval - every duty cycle -
+ * RotaryMeasurement class - The rotary encoder readings are taken a fixed time interval - every duty cycle -
  * This class encapsulates attributes and functions to calculate RPS, RPM and meters per sec
  */
 
-class VelocityCalculation {
+class RotaryMeasurement {
     static constexpr float wheelDiameter{4.12f};
     static constexpr float wheelCircumference = wheelDiameter * M_PI * 2;
     static constexpr float measurementsPerSecond = PID_FREQUENCY; // same as PID, compile flag
@@ -61,5 +62,5 @@ public:
     }
 
 };
-
-#endif //INC_1MOTOR_REFACTOR_SPEEDCALCULATION_H
+}
+#endif //INC_1MOTOR_REFACTOR_ROTARYMEASUREMENT_H

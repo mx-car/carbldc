@@ -2,15 +2,16 @@
 // Created by firat on 21.01.20.
 //
 
-#include "car/bldc/Controller.h"
+#include "car/bldc/driver.h"
 
+using namespace car::bldc;
 /**
  * Singleton
  * @TODO : check Meyer's Singleton
  * @return
  */
-Controller &Controller::getInstance() {
-    static Controller instance;
+Driver &Driver::getInstance() {
+    static Driver instance;
     return instance;
 
 
@@ -27,41 +28,38 @@ Controller &Controller::getInstance() {
  *  Called only once, at the begining, after registering the Motors
  * @param SPI_CLK
  */
-void Controller::initHardware(uint8_t SPI_CLK) {
+void Driver::initHardware(uint8_t SPI_CLK) {
 
-    Teensy32Drivers::initPWMPins();
-    RotaryEncoderCommunication::initSPI(SPI_CLK);
+    Teensy32::initPWMPins();
+    RotaryEncoder::initSPI(SPI_CLK);
     //initADCconversions();
 
-
     for (int i = 0; i < numberOfMotors; ++i) {
-        Teensy32Drivers::initInhibitPins(*motors[i]);
-        Teensy32Drivers::activateInhibitPins(*motors[i]);
-        RotaryEncoderCommunication::initMotorCSPins(*motors[i]);
+        Teensy32::initInhibitPins(*motors[i]);
+        Teensy32::activateInhibitPins(*motors[i]);
+        RotaryEncoder::initMotorCSPins(*motors[i]);
     }
-
-
 }
 
 
-    void Controller::setCommand(float value, uint8_t motor){
+    void Driver::setCommand(float value, uint8_t motor){
         command[motor] = value;
         tstamp_command_update = micros();
     }
-    const float& Controller::getCommand(uint8_t motor) const{
+    const float& Driver::getCommand(uint8_t motor) const{
         return command[motor];
     }
-    const float& Controller::getSpeed(uint8_t motor) const{
+    const float& Driver::getSpeed(uint8_t motor) const{
         return speed[motor];
 
     }
-    const float& Controller::getTorque(uint8_t motor) const{
+    const float& Driver::getTorque(uint8_t motor) const{
         return torque[motor];
     }
-    const int64_t& Controller::getTStampMeasurement() const{
+    const int64_t& Driver::getTStampMeasurement() const{
         return tstamp_state_update;
     }
-    const int64_t& Controller::getTStampCommand() const{
+    const int64_t& Driver::getTStampCommand() const{
         return tstamp_state_update;
     }
 
@@ -79,36 +77,34 @@ void Controller::initHardware(uint8_t SPI_CLK) {
  * 5- Feed that PWM registers
  * @return
  */
-FASTRUN void Controller::run() {
+FASTRUN void Driver::run() {
 
 
     for (int i = 0; i < 2 /* numberOfMotors */ ; ++i) {
 
-        uint16_t rotaryEncoderValue0 = RotaryEncoderCommunication::SPITransfer(*motors[i]);
+        uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(*motors[i]);
         motors[i]->updateRotaryEncoderPosition(rotaryEncoderValue0);
 
         if (motors[i]->isTimeForPIDControl()) { //every 0.25 sec
-            speed[i] = VelocityCalculation::getRotationsPerSecond3(*motors[i]);
+            speed[i] = RotaryMeasurement::getRotationsPerSecond3(*motors[i]);
             motors[i]->updateSpeedRPS(speed[i]);
             motors[i]->updateSpeedScalar(command[i]);
             tstamp_state_update = micros();
         }
 
         SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(*motors[i]);
-        Teensy32Drivers::updatePWMPinsDutyCycle(dutyCycles, *motors[i]);
+        Teensy32::updatePWMPinsDutyCycle(dutyCycles, *motors[i]);
     }
-
-
 }
 
 
 /**
- * Controller class has a list of motor pointers, this function adds motor objects to this array.
+ * Driver class has a list of motor pointers, this function adds motor objects to this array.
  * and increases motor count.
  * @param m_ptr
  */
 
-void Controller::registerMotors(Motor *m_ptr) {
+void Driver::registerMotors(Motor *m_ptr) {
     motors[numberOfMotors++] = m_ptr;
 
 
