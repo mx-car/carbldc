@@ -2,8 +2,8 @@
 // Created by firat on 21.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_ROTARYMEASUREMENT_H
-#define INC_1MOTOR_REFACTOR_ROTARYMEASUREMENT_H
+#ifndef CAR_BLDC_MEASUREMENT_H
+#define CAR_BLDC_MEASUREMENT_H
 
 #include "car/bldc/motor.h"
 
@@ -63,4 +63,4 @@ public:
 
 };
 }
-#endif //INC_1MOTOR_REFACTOR_ROTARYMEASUREMENT_H
+#endif //CAR_BLDC_MEASUREMENT_H

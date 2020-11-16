@@ -2,8 +2,8 @@
 // Created by firat on 29.08.20.
 //
 
-#ifndef INC_2MOTORNEWBOARD_SVPWM_LUT_H
-#define INC_2MOTORNEWBOARD_SVPWM_LUT_H
+#ifndef CAR_BLDC_SVPWMLUT_H
+#define CAR_BLDC_SVPWMLUT_H
 
 #include <Arduino.h>
 #include <array>
@@ -222,4 +222,4 @@ public:
 
 };
 }
-#endif //INC_2MOTORNEWBOARD_SVPWM_LUT_H
+#endif //CAR_BLDC_SVPWMLUT_H

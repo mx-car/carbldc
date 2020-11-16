@@ -2,8 +2,8 @@
 // Created by firat on 20.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_MOTOR_H
-#define INC_1MOTOR_REFACTOR_MOTOR_H
+#ifndef CAR_BLDC_MOTOR_H
+#define CAR_BLDC_MOTOR_H
 
 #include <Arduino.h>
 #include <array>
@@ -179,4 +179,4 @@ public:
 };
 }
 
-#endif //INC_1MOTOR_REFACTOR_MOTOR_H
+#endif //CAR_BLDC_MOTOR_H

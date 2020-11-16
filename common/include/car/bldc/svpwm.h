@@ -2,8 +2,8 @@
 // Created by firat on 21.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_SVPWM_H
-#define INC_1MOTOR_REFACTOR_SVPWM_H
+#ifndef CAR_BLDC_SVPWM_H
+#define CAR_BLDC_SVPWM_H
 
 
 #include "car/bldc/motor.h"
@@ -38,4 +38,4 @@ public:
 
 };
 }
-#endif //INC_1MOTOR_REFACTOR_SVPWM_H
+#endif //CAR_BLDC_SVPWM_H

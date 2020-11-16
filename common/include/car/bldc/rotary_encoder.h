@@ -2,8 +2,8 @@
 // Created by firat on 21.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_ROTARYENCODER_H
-#define INC_1MOTOR_REFACTOR_ROTARYENCODER_H
+#ifndef CAR_BLDC_ROTARYENCODER_H
+#define CAR_BLDC_ROTARYENCODER_H
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -25,4 +25,4 @@ public:
 
 };
 }
-#endif //INC_1MOTOR_REFACTOR_ROTARYENCODER_H
+#endif //CAR_BLDC_ROTARYENCODER_H

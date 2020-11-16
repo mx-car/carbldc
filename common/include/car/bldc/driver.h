@@ -2,8 +2,8 @@
 // Created by firat on 21.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_FOC_H
-#define INC_1MOTOR_REFACTOR_FOC_H
+#ifndef CAR_BLDC_DRIVER_H
+#define CAR_BLDC_DRIVER_H
 
 #include "car/bldc/rotary_measurement.h"
 #include "car/bldc/rotary_encoder.h"
@@ -70,4 +70,4 @@ private:
     int64_t tstamp_command_update;      // timestamp  micros();
 };
 }
-#endif //INC_1MOTOR_REFACTOR_FOC_H
+#endif //CAR_BLDC_DRIVER_H

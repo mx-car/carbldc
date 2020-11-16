@@ -2,8 +2,8 @@
 // Created by firat on 25.01.20.
 //
 
-#ifndef INC_1MOTOR_REFACTOR_UTILS_H
-#define INC_1MOTOR_REFACTOR_UTILS_H
+#ifndef CAR_BLDC_UTILS_H
+#define CAR_BLDC_UTILS_H
 
 
 #include <cstdint>
@@ -87,4 +87,4 @@ public:
 
 }
 
-#endif //INC_1MOTOR_REFACTOR_UTILS_H
+#endif //CAR_BLDC_UTILS_H

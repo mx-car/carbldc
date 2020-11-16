@@ -2,8 +2,8 @@
 // Created by firat on 29.08.20.
 //
 
-#ifndef INC_2MOTORNEWBOARD_TEENSY32_H
-#define INC_2MOTORNEWBOARD_TEENSY32_H
+#ifndef CAR_BLDC_TEENSY32_H
+#define CAR_BLDC_TEENSY32_H
 
 #include "Arduino.h"
 #include "car/bldc/motor.h"
@@ -38,4 +38,4 @@ private:
 
 };
 }
-#endif //INC_2MOTORNEWBOARD_TEENSY32_H
+#endif //CAR_BLDC_TEENSY32_H
