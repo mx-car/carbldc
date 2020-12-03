@@ -68,6 +68,25 @@ public:
         float average_rps;
 
     };
+
+private:
+    static constexpr size_t paramsListSize = 50;
+    static constexpr size_t rps_list_size = 20;
+    static constexpr float motor_speed_scalar = -25;
+    static std::array<FluxAngleOffsetCalibrationParams,paramsListSize> params_list;
+    static std::array<float,rps_list_size> rps_list;
+    static uint32_t findOptimalFluxAngle();
+
+
+
+    static void printParamsList(std::array<FluxAngleOffsetCalibrationParams,paramsListSize> & paramsList);
+
+    static void calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &motor2);
+
+    static bool gatherDataForOptimalFluxAngleCalculation(Motor &m);
+
+    static bool myComperator(FluxAngleOffsetCalibrationParams &a,FluxAngleOffsetCalibrationParams &b);
+public:
     static int16_t calculateSensorOffset(Motor &motor, const uint16_t LUTindex);
 
     static void testMotors(Motor &x);
@@ -78,12 +97,14 @@ public:
 
     static void speedSweep(Motor &motor);
 
-    static FluxAngleOffsetCalibrationParams calculateParams(uint32_t angle_offset, float *rps, uint32_t rps_list_size);
+    static FluxAngleOffsetCalibrationParams calculateParams(uint32_t angle_offset, std::array<float,rps_list_size> rps_list);
 
-    static float calculate_variance(float mean, float* rps_list, uint32_t rps_list_size);
+    static float calculate_variance(float mean,std::array<float,rps_list_size> rps_list );
 
     static void calculateAndPrintOptimalFluxAngle(Motor &m);
+
 };
+
 
 }
 

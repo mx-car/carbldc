@@ -2,6 +2,7 @@
 // Created by firat on 25.01.20.
 //
 
+#include <algorithm>
 #include "car/bldc/utils.h"
 
 
@@ -216,18 +217,18 @@ void Diagnostics::primitiveSpinMotor(Motor &motor, uint32_t delayMicroSecs) {
 }
 
 Diagnostics::FluxAngleOffsetCalibrationParams
-Diagnostics::calculateParams(uint32_t angle_offset, float *rps, uint32_t rps_list_size) {
+Diagnostics::calculateParams(uint32_t angle_offset,std::array<float,rps_list_size> rps_list ) {
     Diagnostics::FluxAngleOffsetCalibrationParams params{angle_offset,0,0};
     float sum = 0;
-    for (uint32_t r = 0; r < rps_list_size; ++r) {
-        sum += rps[r];
+    for(float rps: rps_list){
+        sum+=rps;
     }
     params.average_rps = sum/rps_list_size;
-    params.variance = calculate_variance(params.average_rps,rps,rps_list_size);
+    params.variance = calculate_variance(params.average_rps,rps_list);
     return params;
 }
 
-float Diagnostics::calculate_variance(float mean, float *rps_list, uint32_t rps_list_size) {
+float Diagnostics::calculate_variance(float mean,std::array<float,rps_list_size> rps_list ) {
     float sum_of_squared_diffs = 0;
     for (uint32_t i = 0; i < rps_list_size; ++i) {
         sum_of_squared_diffs += sq(rps_list[i] - mean);
@@ -237,48 +238,119 @@ float Diagnostics::calculate_variance(float mean, float *rps_list, uint32_t rps_
 
 void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
     static uint32_t rps_ctr = 0;
-    static const uint32_t rps_list_size = 20;
-    static float rps_list[rps_list_size];
-    static const uint32_t params_list_size = 10;
-    static FluxAngleOffsetCalibrationParams params_list[params_list_size];
     static uint32_t param_ctr = 0;
-    static uint32_t angle_offset = 1400;
-    m.updateSpeedScalar(55);
+    static uint32_t angle_offset = 1200;
+    static bool finito = false;
+    uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
+    m.updateRotaryEncoderPosition(rotaryEncoderValue0);
+    if (!finito) {
+        m.updateSpeedScalar(motor_speed_scalar);
+    }
 
-
-    for (int i = 0; i < 1 /* numberOfMotors */ ; ++i) {
-
-        uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
-        m.updateRotaryEncoderPosition(rotaryEncoderValue0);
-
-
-        if (m.isTimeForPIDControl()) { //every 0.25 sec
-            float rps = RotaryMeasurement::getRotationsPerSecond3(m);
-            m.updateSpeedRPS(rps);
-            rps_list[rps_ctr++] = rps;
+    if (m.isTimeForPIDControl()) { //every 0.25 sec
+        float rps = RotaryMeasurement::getRotationsPerSecond3(m);
+        rps_list[rps_ctr++] = rps;
+    }
+    if (rps_ctr == rps_list_size) {
+        rps_ctr = 0;
+        angle_offset += 2;
+        angle_offset = (angle_offset % 1489);
+        m.setAngleOffset(angle_offset);
+        params_list[param_ctr++] = calculateParams(angle_offset, rps_list);
+        if (param_ctr == params_list.size()) {
+            printParamsList(params_list);
+            finito = true;
+            m.updateSpeedScalar(10);
         }
-        if(rps_ctr == rps_list_size){
-            rps_ctr = 0;
-            angle_offset+= 25;
-            angle_offset = (angle_offset % 1489);
-            m.setAngleOffset(angle_offset);
-            params_list[param_ctr++] = calculateParams(angle_offset,rps_list,rps_list_size);
-            if(param_ctr == params_list_size){
-                for (uint32_t j = 0; j < params_list_size; ++j) {
-                    Serial.print(" average rps: ");
-                    Serial.print(params_list[j].average_rps,5);
-                    Serial.print(" - variance: ");
-                    Serial.print(params_list[j].variance,5);
-                    Serial.print(" - angle offet: ");
-                    Serial.println(params_list[j].angle_offset);
+    }
 
-                }
-            }
-        }
+    SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(m);
+    Teensy32::updatePWMPinsDutyCycle(dutyCycles, m);
 
-        SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(m);
-        Teensy32::updatePWMPinsDutyCycle(dutyCycles, m);
+}
+
+bool Diagnostics::myComperator(Diagnostics::FluxAngleOffsetCalibrationParams &a,
+                               Diagnostics::FluxAngleOffsetCalibrationParams &b) {
+    return a.average_rps > b.average_rps;
+}
+
+uint32_t
+Diagnostics::findOptimalFluxAngle() {
+    std::sort(params_list.begin(),params_list.end(),Diagnostics::myComperator);
+    return params_list.front().angle_offset;
+}
+
+void Diagnostics::printParamsList(std::array<FluxAngleOffsetCalibrationParams, paramsListSize> &paramsList) {
+
+    for (const auto &params: paramsList) {
+        Serial.print(" average rps: ");
+        Serial.print(params.average_rps, 5);
+        Serial.print(" - variance: ");
+        Serial.print(params.variance, 5);
+        Serial.print(" - angle offet: ");
+        Serial.println(params.angle_offset);
+
     }
 }
+
+void Diagnostics::calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &motor2) {
+    static bool firstMotorDone = false;
+    static bool secondMotorDone = false;
+    if(!firstMotorDone){
+        firstMotorDone = gatherDataForOptimalFluxAngleCalculation(motor1);
+        if(firstMotorDone){
+            uint32_t fluxAngle = findOptimalFluxAngle();
+            params_list.fill(FluxAngleOffsetCalibrationParams{0,0,0});
+            rps_list.fill(0);
+            Serial.println(fluxAngle);
+        }
+    }
+    else{
+        secondMotorDone = gatherDataForOptimalFluxAngleCalculation(motor1);
+        if(secondMotorDone){
+            uint32_t fluxAngle = findOptimalFluxAngle();
+            params_list.fill(FluxAngleOffsetCalibrationParams{0,0,0});
+            rps_list.fill(0);
+            Serial.println(fluxAngle);
+    }
+
+}
+
+bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
+    static uint32_t rps_ctr = 0;
+    static uint32_t param_ctr = 0;
+    static uint32_t angle_offset = 1200;
+    static bool finito = false;
+    uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
+    m.updateRotaryEncoderPosition(rotaryEncoderValue0);
+    if (!finito) {
+        m.updateSpeedScalar(motor_speed_scalar);
+    }
+
+    if (m.isTimeForPIDControl()) { //every 0.25 sec
+        float rps = RotaryMeasurement::getRotationsPerSecond3(m);
+        rps_list[rps_ctr++] = rps;
+    }
+    if (rps_ctr == rps_list_size) {
+        rps_ctr = 0;
+        angle_offset += 2;
+        angle_offset = (angle_offset % 1489);
+        m.setAngleOffset(angle_offset);
+        params_list[param_ctr++] = calculateParams(angle_offset, rps_list);
+        if (param_ctr == params_list.size()) {
+            finito = true;
+            m.updateSpeedScalar(10);
+        }
+    }
+
+    SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(m);
+    Teensy32::updatePWMPinsDutyCycle(dutyCycles, m);
+    return finito;
+}
+
+
+
+
+
 
 
