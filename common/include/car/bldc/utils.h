@@ -73,9 +73,12 @@ private:
     static constexpr size_t paramsListSize = 50;
     static constexpr size_t rps_list_size = 20;
     static constexpr float motor_speed_scalar = -25;
+    static uint32_t  motor1FluxAnlge;
+    static uint32_t  motor2FluxAnlge;
     static std::array<FluxAngleOffsetCalibrationParams,paramsListSize> params_list;
     static std::array<float,rps_list_size> rps_list;
     static uint32_t findOptimalFluxAngle();
+    static bool correctSpinningDirection(FluxAngleOffsetCalibrationParams &param);
 
 
 

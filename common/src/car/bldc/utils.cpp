@@ -271,7 +271,14 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
 
 bool Diagnostics::myComperator(Diagnostics::FluxAngleOffsetCalibrationParams &a,
                                Diagnostics::FluxAngleOffsetCalibrationParams &b) {
-    return a.average_rps > b.average_rps;
+    if(!correctSpinningDirection(a) && correctSpinningDirection(b)){
+        return false;
+    }
+    else if(correctSpinningDirection(a) && !correctSpinningDirection(b)){
+        return true;
+    }
+    return fabsf(a.average_rps) > fabsf(b.average_rps);
+
 }
 
 uint32_t
@@ -283,6 +290,8 @@ Diagnostics::findOptimalFluxAngle() {
 void Diagnostics::printParamsList(std::array<FluxAngleOffsetCalibrationParams, paramsListSize> &paramsList) {
 
     for (const auto &params: paramsList) {
+        Serial.print(" Speed scalar: ");
+        Serial.print(motor_speed_scalar, 5);
         Serial.print(" average rps: ");
         Serial.print(params.average_rps, 5);
         Serial.print(" - variance: ");
@@ -296,30 +305,31 @@ void Diagnostics::printParamsList(std::array<FluxAngleOffsetCalibrationParams, p
 void Diagnostics::calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &motor2) {
     static bool firstMotorDone = false;
     static bool secondMotorDone = false;
-    if(!firstMotorDone){
+    if (!firstMotorDone) {
         firstMotorDone = gatherDataForOptimalFluxAngleCalculation(motor1);
-        if(firstMotorDone){
-            uint32_t fluxAngle = findOptimalFluxAngle();
-            params_list.fill(FluxAngleOffsetCalibrationParams{0,0,0});
+        if (firstMotorDone) {
+            motor1FluxAnlge = findOptimalFluxAngle();
+            printParamsList(params_list);
+            params_list.fill(FluxAngleOffsetCalibrationParams{0, 0, 0});
             rps_list.fill(0);
-            Serial.println(fluxAngle);
+            Serial.println(motor1FluxAnlge);
         }
-    }
-    else{
+    } else {
         secondMotorDone = gatherDataForOptimalFluxAngleCalculation(motor1);
-        if(secondMotorDone){
-            uint32_t fluxAngle = findOptimalFluxAngle();
-            params_list.fill(FluxAngleOffsetCalibrationParams{0,0,0});
+        if (secondMotorDone) {
+            motor2FluxAnlge = findOptimalFluxAngle();
+            printParamsList(params_list);
+            params_list.fill(FluxAngleOffsetCalibrationParams{0, 0, 0});
             rps_list.fill(0);
-            Serial.println(fluxAngle);
+            Serial.println(motor2FluxAnlge);
+        }
+
     }
-
 }
-
 bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     static uint32_t rps_ctr = 0;
     static uint32_t param_ctr = 0;
-    static uint32_t angle_offset = 1200;
+    static uint32_t angle_offset = 0;
     static bool finito = false;
     uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
     m.updateRotaryEncoderPosition(rotaryEncoderValue0);
@@ -333,7 +343,7 @@ bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     }
     if (rps_ctr == rps_list_size) {
         rps_ctr = 0;
-        angle_offset += 2;
+        angle_offset += 25;
         angle_offset = (angle_offset % 1489);
         m.setAngleOffset(angle_offset);
         params_list[param_ctr++] = calculateParams(angle_offset, rps_list);
@@ -347,6 +357,10 @@ bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     Teensy32::updatePWMPinsDutyCycle(dutyCycles, m);
     return finito;
 }
+bool Diagnostics::correctSpinningDirection(Diagnostics::FluxAngleOffsetCalibrationParams &param) {
+    return param.average_rps * motor_speed_scalar >= 0;
+}
+
 
 
 
