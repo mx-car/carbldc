@@ -12,6 +12,7 @@
 #include "car/bldc/rotary_encoder.h"
 #include "car/bldc/rotary_measurement.h"
 #include "driver.h"
+#include <EEPROM.h>
 
 namespace car::bldc{
 
@@ -69,12 +70,22 @@ public:
 
     };
 
-private:
+    struct OptimalFluxAngles{
+        uint16_t motor1FluxAngle;
+        uint16_t motor2FluxAngle;
+    };
+
     static constexpr size_t paramsListSize = 50;
-    static constexpr size_t rps_list_size = 20;
+    static constexpr size_t rps_list_size = 30;
+
+private:
     static constexpr float motor_speed_scalar = -25;
-    static uint32_t  motor1FluxAnlge;
+    static bool firstMotorDone;
+    static bool secondMotorDone;
+    static uint32_t motor1FluxAnlge;
     static uint32_t  motor2FluxAnlge;
+    static uint32_t angleOffsetIncrement;
+    static uint32_t angle_offset;
     static std::array<FluxAngleOffsetCalibrationParams,paramsListSize> params_list;
     static std::array<float,rps_list_size> rps_list;
     static uint32_t findOptimalFluxAngle();
@@ -84,7 +95,6 @@ private:
 
     static void printParamsList(std::array<FluxAngleOffsetCalibrationParams,paramsListSize> & paramsList);
 
-    static void calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &motor2);
 
     static bool gatherDataForOptimalFluxAngleCalculation(Motor &m);
 
@@ -93,6 +103,9 @@ public:
     static int16_t calculateSensorOffset(Motor &motor, const uint16_t LUTindex);
 
     static void testMotors(Motor &x);
+    static OptimalFluxAngles
+    calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &motor2, uint32_t motor1InitialFluxAngle = 0, uint32_t motor2InitialFluxAngle = 0);
+
 
     static void primitiveSpin(uint16_t LUTindex, Motor &motor);
 
@@ -105,6 +118,8 @@ public:
     static float calculate_variance(float mean,std::array<float,rps_list_size> rps_list );
 
     static void calculateAndPrintOptimalFluxAngle(Motor &m);
+
+    static void calculateAngleFiner(Motor &motor1, Motor &motor2);
 
 };
 

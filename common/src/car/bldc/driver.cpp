@@ -33,6 +33,7 @@ void Driver::initHardware(uint8_t SPI_CLK) {
     Teensy32::initPWMPins();
     RotaryEncoder::initSPI(SPI_CLK);
     //initADCconversions();
+    while(!getRotorFluxAngleOffsetFromEEPROM());
 
     for (int i = 0; i < numberOfMotors; ++i) {
         Teensy32::initInhibitPins(*motors[i]);
@@ -108,6 +109,25 @@ void Driver::registerMotors(Motor *m_ptr) {
     motors[numberOfMotors++] = m_ptr;
 
 
+}
+
+bool Driver::getRotorFluxAngleOffsetFromEEPROM() {
+    if(EEPROM.read(0) == 255 && EEPROM.read(3) ){
+        Serial.println("EEPROM Values not set!!! Check read.me and run the Diagnostics configuration....");
+        return false;
+    }
+    else{
+        Diagnostics::OptimalFluxAngles x;
+        EEPROM.get(0,x);
+        motors[0]->setAngleOffset(x.motor1FluxAngle);
+        motors[1]->setAngleOffset(x.motor2FluxAngle);
+        Serial.print("Motor0 Flux Angle: ");
+        Serial.println(x.motor1FluxAngle);
+        Serial.print("Motor1 Flux Angle: ");
+        Serial.println(x.motor2FluxAngle);
+        return true;
+
+    }
 }
 
 

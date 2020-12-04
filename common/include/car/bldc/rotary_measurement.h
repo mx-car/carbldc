@@ -42,13 +42,14 @@ public:
         }
         float_t retVal = static_cast<float>(diff) / ENCODER_RESOLUTION * PID_FREQUENCY;
         m.previousRotaryEncoderValue = m.rotaryEncoderPosition;
-        return retVal;
+
+        return retVal * m.leftWheel;
     }
 
 
     static float getRotationsPerSecond4(Motor &motor) {
         int32_t timeDiffInMicroSeconds = motor.getTimeDifference();
-        int32_t diff = (motor.rotaryEncoderPosition - motor.previousRotaryEncoderValue)  *  static_cast<int>(motor.direction) * motor.rightWheel ;
+        int32_t diff = (motor.rotaryEncoderPosition - motor.previousRotaryEncoderValue)  *  static_cast<int>(motor.direction) * motor.leftWheel ;
         int16_t and_val = 16383; // binary magic to get rid of overflow
         diff &= and_val;
         float_t rps = ((static_cast<float>(diff) / timeDiffInMicroSeconds) / ENCODER_RESOLUTION) * 1000000;
