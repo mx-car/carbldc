@@ -8,13 +8,20 @@
 
 using namespace car::bldc;
 
-uint16_t SerialHelper::plot_counter=0;
+uint16_t SerialHelper::plot_counter = 0;
 float DerivateFilter::s = 0;
 float DerivateFilter::s_dot = 0;
+uint32_t Diagnostics::motor1FluxAnlge = 0;
+uint32_t Diagnostics::motor2FluxAnlge = 0;
+uint32_t Diagnostics::angleOffsetIncrement = 30;
+uint32_t Diagnostics::angle_offset = 0;
+bool Diagnostics::firstMotorDone = false;
+bool Diagnostics::secondMotorDone = false;
+std::array<Diagnostics::FluxAngleOffsetCalibrationParams, Diagnostics::paramsListSize> Diagnostics::params_list;
+std::array<float, Diagnostics::rps_list_size> Diagnostics::rps_list;
 
 
-
-uint32_t DerivateFilter::getFilteredMeasurement(uint32_t measurement){
+uint32_t DerivateFilter::getFilteredMeasurement(uint32_t measurement) {
     float s_temp = s + s_dot * delta_T; // new value, old value + difference (s_dot * delta_T)
     float s_dot_temp = s_dot + (-s / (T_f * T_f) - 2 * s_dot / T_f + measurement) * delta_T;
     s = s_temp;
@@ -24,7 +31,7 @@ uint32_t DerivateFilter::getFilteredMeasurement(uint32_t measurement){
 
 }
 
-const CommandParameters & SerialHelper::setVelandSteeringAngleFromSerial() {
+const CommandParameters &SerialHelper::setVelandSteeringAngleFromSerial() {
     int index = 0;
     byte transmit_buffer[14];
     while (Serial.available()) {
@@ -82,8 +89,9 @@ void Diagnostics::primitiveSpin(uint16_t LUTindex, Motor &motor) {
 
 
 }
+
 int16_t Diagnostics::calculateSensorOffset(Motor &motor,
-                                   const uint16_t LUTindex) { //the index is used as a parameter to maybe plot the sensor offset all over the motor range
+                                           const uint16_t LUTindex) { //the index is used as a parameter to maybe plot the sensor offset all over the motor range
     uint16_t LUTSize = SVPWM::getLutSize();
     uint16_t dutyCycleW = SVPWM::getLUT()[LUTindex];
     uint16_t dutyCycleU = SVPWM::getLUT()[(LUTindex + (LUTSize / 3)) % LUTSize];
@@ -148,7 +156,7 @@ void Diagnostics::testMotors(Motor( &x)) {
 
 }
 
-void Diagnostics::speedSweep(Motor & motor) {
+void Diagnostics::speedSweep(Motor &motor) {
     static uint16_t prev = 0;
     static uint32_t speed_increase_counter = 0;
     static float speed_command = 10.f;
@@ -171,7 +179,7 @@ void Diagnostics::speedSweep(Motor & motor) {
         motor.updateRotaryEncoderPosition(rotaryEncoderValue);
 
         if (motor.isTimeForPIDControl()) { //20 times a sec
-            float_t rps = RotaryMeasurement::getRotationsPerSecond3(motor);
+            float_t rps = RotaryMeasurement::getRotationsPerSecondPeriodic(motor);
             motor.updateSpeedRPS(rps);
             motor.updateSpeedScalar(speed_command);
             if (speed_increase_counter < values_to_add_up) {
@@ -205,35 +213,35 @@ void Diagnostics::speedSweep(Motor & motor) {
 }
 
 void Diagnostics::primitiveSpinMotor(Motor &motor, uint32_t delayMicroSecs) {
-      while(1){
-      for (int i = 0; i < 1489; ++i) {
-          Diagnostics::primitiveSpin(i,motor);
-          delayMicroseconds(delayMicroSecs);
+    while (1) {
+        for (int i = 0; i < 1489; ++i) {
+            Diagnostics::primitiveSpin(i, motor);
+            delayMicroseconds(delayMicroSecs);
 
-      }
-  }
+        }
+    }
 
 
 }
 
 Diagnostics::FluxAngleOffsetCalibrationParams
-Diagnostics::calculateParams(uint32_t angle_offset,std::array<float,rps_list_size> rps_list ) {
-    Diagnostics::FluxAngleOffsetCalibrationParams params{angle_offset,0,0};
+Diagnostics::calculateParams(uint32_t angle_offset, std::array<float, rps_list_size> rps_list) {
+    Diagnostics::FluxAngleOffsetCalibrationParams params{angle_offset, 0, 0};
     float sum = 0;
-    for(float rps: rps_list){
-        sum+=rps;
+    for (float rps: rps_list) {
+        sum += rps;
     }
-    params.average_rps = sum/rps_list_size;
-    params.variance = calculate_variance(params.average_rps,rps_list);
+    params.average_rps = sum / rps_list_size;
+    params.variance = calculate_variance(params.average_rps, rps_list);
     return params;
 }
 
-float Diagnostics::calculate_variance(float mean,std::array<float,rps_list_size> rps_list ) {
+float Diagnostics::calculate_variance(float mean, std::array<float, rps_list_size> rps_list) {
     float sum_of_squared_diffs = 0;
     for (uint32_t i = 0; i < rps_list_size; ++i) {
         sum_of_squared_diffs += sq(rps_list[i] - mean);
     }
-    return sum_of_squared_diffs/rps_list_size;
+    return sum_of_squared_diffs / rps_list_size;
 }
 
 void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
@@ -248,7 +256,7 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
     }
 
     if (m.isTimeForPIDControl()) { //every 0.25 sec
-        float rps = RotaryMeasurement::getRotationsPerSecond3(m);
+        float rps = RotaryMeasurement::getRotationsPerSecondPeriodic(m);
         rps_list[rps_ctr++] = rps;
     }
     if (rps_ctr == rps_list_size) {
@@ -271,19 +279,28 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
 
 bool Diagnostics::myComperator(Diagnostics::FluxAngleOffsetCalibrationParams &a,
                                Diagnostics::FluxAngleOffsetCalibrationParams &b) {
-    if(!correctSpinningDirection(a) && correctSpinningDirection(b)){
+    if(a.variance > 0.003){
         return false;
     }
-    else if(correctSpinningDirection(a) && !correctSpinningDirection(b)){
+    if (fabsf(a.average_rps) < 0.5) {
+        return false;
+    }
+    if (!correctSpinningDirection(a) && correctSpinningDirection(b)) {
+        return false;
+    } else if (correctSpinningDirection(a) && !correctSpinningDirection(b)) {
         return true;
     }
-    return fabsf(a.average_rps) > fabsf(b.average_rps);
+    float a_rps = fabsf(a.average_rps);
+    float b_rps = fabsf(b.average_rps);
+    if(a.variance < b.variance){ a_rps += 0.1;}
+    else { b_rps += 0.3;}
+    return a_rps  > b_rps;
 
 }
 
 uint32_t
 Diagnostics::findOptimalFluxAngle() {
-    std::sort(params_list.begin(),params_list.end(),Diagnostics::myComperator);
+    std::sort(params_list.begin(), params_list.end(), Diagnostics::myComperator);
     return params_list.front().angle_offset;
 }
 
@@ -302,9 +319,15 @@ void Diagnostics::printParamsList(std::array<FluxAngleOffsetCalibrationParams, p
     }
 }
 
-void Diagnostics::calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &motor2) {
-    static bool firstMotorDone = false;
-    static bool secondMotorDone = false;
+Diagnostics::OptimalFluxAngles
+Diagnostics::calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &motor2, uint32_t motor1InitialFluxAngle,
+                                                   uint32_t motor2InitialFluxAngle) {
+    OptimalFluxAngles crude{10000, 10000};
+    static bool initial = true;
+    if (initial) {
+        angle_offset = motor1InitialFluxAngle;
+        initial = false;
+    }
     if (!firstMotorDone) {
         firstMotorDone = gatherDataForOptimalFluxAngleCalculation(motor1);
         if (firstMotorDone) {
@@ -313,24 +336,36 @@ void Diagnostics::calculateOptimalFluxAngleForBothMotor(Motor &motor1, Motor &mo
             params_list.fill(FluxAngleOffsetCalibrationParams{0, 0, 0});
             rps_list.fill(0);
             Serial.println(motor1FluxAnlge);
+            angle_offset = motor2InitialFluxAngle;
+            crude.motor1FluxAngle = motor1FluxAnlge;
+            firstMotorDone = true;
+
         }
-    } else {
-        secondMotorDone = gatherDataForOptimalFluxAngleCalculation(motor1);
+    } else if (firstMotorDone && !secondMotorDone) {
+        secondMotorDone = gatherDataForOptimalFluxAngleCalculation(motor2);
         if (secondMotorDone) {
             motor2FluxAnlge = findOptimalFluxAngle();
             printParamsList(params_list);
             params_list.fill(FluxAngleOffsetCalibrationParams{0, 0, 0});
             rps_list.fill(0);
             Serial.println(motor2FluxAnlge);
+            crude.motor2FluxAngle = motor2FluxAnlge;
+            crude.motor1FluxAngle = motor1FluxAnlge;
+            initial = true;
+            firstMotorDone = false;
+            secondMotorDone = false;
+
         }
 
     }
+    return crude;
 }
+
 bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     static uint32_t rps_ctr = 0;
     static uint32_t param_ctr = 0;
-    static uint32_t angle_offset = 0;
     static bool finito = false;
+    finito = false;
     uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
     m.updateRotaryEncoderPosition(rotaryEncoderValue0);
     if (!finito) {
@@ -338,18 +373,22 @@ bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     }
 
     if (m.isTimeForPIDControl()) { //every 0.25 sec
-        float rps = RotaryMeasurement::getRotationsPerSecond3(m);
+        float rps = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(m);
         rps_list[rps_ctr++] = rps;
     }
     if (rps_ctr == rps_list_size) {
         rps_ctr = 0;
-        angle_offset += 25;
+        angle_offset += angleOffsetIncrement;
         angle_offset = (angle_offset % 1489);
         m.setAngleOffset(angle_offset);
         params_list[param_ctr++] = calculateParams(angle_offset, rps_list);
         if (param_ctr == params_list.size()) {
             finito = true;
             m.updateSpeedScalar(10);
+            rps_ctr = 0;
+            param_ctr = 0;
+            angle_offset = 0;
+
         }
     }
 
@@ -357,9 +396,46 @@ bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     Teensy32::updatePWMPinsDutyCycle(dutyCycles, m);
     return finito;
 }
+
 bool Diagnostics::correctSpinningDirection(Diagnostics::FluxAngleOffsetCalibrationParams &param) {
     return param.average_rps * motor_speed_scalar >= 0;
 }
+
+void Diagnostics::calculateAngleFiner(Motor &motor1, Motor &motor2) {
+    static bool finito = false;
+    if (finito) {
+        return;
+    }
+    static OptimalFluxAngles crude{10000, 10000};
+    static OptimalFluxAngles fineTuned{10000, 10000};
+
+    if (crude.motor2FluxAngle == 10000) {
+        crude = calculateOptimalFluxAngleForBothMotor(motor1, motor2);
+    } else {
+            angleOffsetIncrement = 2;
+            uint32_t newMotor1FluxAngleStartingValue =
+                    crude.motor1FluxAngle - angleOffsetIncrement * (paramsListSize / 2);
+            uint32_t newMotor2FluxAngleStartingValue =
+                    crude.motor2FluxAngle - angleOffsetIncrement * (paramsListSize / 2);
+            fineTuned = calculateOptimalFluxAngleForBothMotor(motor1, motor2,
+                                                              newMotor1FluxAngleStartingValue,
+                                                              newMotor2FluxAngleStartingValue);
+            if(fineTuned.motor2FluxAngle != 10000){
+                finito = true;
+                EEPROM.put(0,fineTuned);
+
+            }
+
+    }
+
+
+    }
+
+
+
+
+
+
 
 
 

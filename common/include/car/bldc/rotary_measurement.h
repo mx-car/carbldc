@@ -1,3 +1,4 @@
+#include <algorithm>
 //
 // Created by firat on 21.01.20.
 //
@@ -23,34 +24,56 @@ class RotaryMeasurement {
 public:
 
     static float getRotationsPerMinute(Motor &motor) {
-        return getRotationsPerSecond3(motor) * 60;
+        return getRotationsPerSecondPeriodic(motor) * 60;
     }
 
-    static float getRotationsPerSecond3(Motor &m) {
+    static float getRotationsPerSecondPeriodic(Motor &m) {
         int32_t diff = m.rotaryEncoderPosition - m.previousRotaryEncoderValue;
 
-        if (m.previousRotaryEncoderValue < 5000 && m.rotaryEncoderPosition > 10000) { // OVERFLOW ROT POS INCREASING
+        if (m.previousRotaryEncoderValue < 5000 && m.rotaryEncoderPosition > 12000) { // OVERFLOW ROT POS INCREASING
             diff -= ENCODER_RESOLUTION;
 
         }
 
 
-        if (m.rotaryEncoderPosition < 5000 && m.previousRotaryEncoderValue > 10000) { // OVERFLOW ROT POS DECREASING
+        if (m.rotaryEncoderPosition < 5000 && m.previousRotaryEncoderValue > 12000) { // OVERFLOW ROT POS DECREASING
             diff += ENCODER_RESOLUTION;
 
 
         }
         float_t retVal = static_cast<float>(diff) / ENCODER_RESOLUTION * PID_FREQUENCY;
         m.previousRotaryEncoderValue = m.rotaryEncoderPosition;
-        return retVal;
+
+        return retVal * m.leftWheel;
+    }
+
+    static float getRotationsPerSecondWithTimeDifference(Motor &m) {
+        int32_t timeDiffInMicroSeconds = m.getTimeDifference();
+        int32_t diff = m.rotaryEncoderPosition - m.previousRotaryEncoderValue;
+
+        if (m.previousRotaryEncoderValue < 4000 && m.rotaryEncoderPosition > 12000) { // OVERFLOW ROT POS INCREASING
+            diff -= ENCODER_RESOLUTION;
+
+        }
+
+        else if (m.rotaryEncoderPosition < 4000 && m.previousRotaryEncoderValue > 12000) { // OVERFLOW ROT POS DECREASING
+            diff += ENCODER_RESOLUTION;
+
+        }
+        float_t rps = ((static_cast<float>(diff) / timeDiffInMicroSeconds) / ENCODER_RESOLUTION) * 1000000;
+        m.updatePrevRotaryEncoderPosition();
+        m.startCounting();
+
+        return rps * m.leftWheel;
     }
 
 
-    static float getRotationsPerSecond4(Motor &motor) {
+    __unused static float getRotationsPerSecondBinaryOverFlowComp(Motor &motor) {
         int32_t timeDiffInMicroSeconds = motor.getTimeDifference();
-        int32_t diff = (motor.rotaryEncoderPosition - motor.previousRotaryEncoderValue)  *  static_cast<int>(motor.direction) * motor.rightWheel ;
+        int32_t diff = (motor.rotaryEncoderPosition - motor.previousRotaryEncoderValue)  *  static_cast<int>(motor.direction) * motor.leftWheel ;
         int16_t and_val = 16383; // binary magic to get rid of overflow
         diff &= and_val;
+        diff = diff - 16384;
         float_t rps = ((static_cast<float>(diff) / timeDiffInMicroSeconds) / ENCODER_RESOLUTION) * 1000000;
         motor.updatePrevRotaryEncoderPosition();
         motor.startCounting();
@@ -58,7 +81,7 @@ public:
     }
 
     static float getMetersPerSecond(Motor &motor) {
-        return getRotationsPerSecond3(motor) * wheelCircumference;
+        return getRotationsPerSecondPeriodic(motor) * wheelCircumference;
     }
 
 };

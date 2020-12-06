@@ -78,11 +78,11 @@ public:
     int32_t encoderCumulativeValue = 0;
     int16_t angleOffset = 0;
     uint16_t PIDCounter = 0;
-    int32_t rightWheel = 1;
+    int32_t leftWheel = 1;
     elapsedMicros start;
 
-    void setAsRightWheel() {
-        rightWheel = -1;
+    void setAsLeftWheel() {
+        leftWheel = -1;
     }
 
     bool isTimeForPIDControl() {
@@ -103,7 +103,7 @@ public:
     }
 
     int32_t calculateAngleOffsetFromSpeedCommand(uint32_t speed_command) {
-        if (rightWheel) {
+        if (leftWheel) {
             if (direction == Backward) {
                 int32_t res = angleOffset - (100 - speed_command);
                 return res;
