@@ -179,7 +179,7 @@ void Diagnostics::speedSweep(Motor &motor) {
         motor.updateRotaryEncoderPosition(rotaryEncoderValue);
 
         if (motor.isTimeForPIDControl()) { //20 times a sec
-            float_t rps = RotaryMeasurement::getRotationsPerSecond3(motor);
+            float_t rps = RotaryMeasurement::getRotationsPerSecondPeriodic(motor);
             motor.updateSpeedRPS(rps);
             motor.updateSpeedScalar(speed_command);
             if (speed_increase_counter < values_to_add_up) {
@@ -256,7 +256,7 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
     }
 
     if (m.isTimeForPIDControl()) { //every 0.25 sec
-        float rps = RotaryMeasurement::getRotationsPerSecond3(m);
+        float rps = RotaryMeasurement::getRotationsPerSecondPeriodic(m);
         rps_list[rps_ctr++] = rps;
     }
     if (rps_ctr == rps_list_size) {
@@ -279,6 +279,9 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
 
 bool Diagnostics::myComperator(Diagnostics::FluxAngleOffsetCalibrationParams &a,
                                Diagnostics::FluxAngleOffsetCalibrationParams &b) {
+    if(a.variance > 0.003){
+        return false;
+    }
     if (fabsf(a.average_rps) < 0.5) {
         return false;
     }
@@ -289,7 +292,7 @@ bool Diagnostics::myComperator(Diagnostics::FluxAngleOffsetCalibrationParams &a,
     }
     float a_rps = fabsf(a.average_rps);
     float b_rps = fabsf(b.average_rps);
-    if(a.variance < b.variance){ a_rps += 0.3;}
+    if(a.variance < b.variance){ a_rps += 0.1;}
     else { b_rps += 0.3;}
     return a_rps  > b_rps;
 
@@ -370,7 +373,7 @@ bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     }
 
     if (m.isTimeForPIDControl()) { //every 0.25 sec
-        float rps = RotaryMeasurement::getRotationsPerSecond3(m);
+        float rps = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(m);
         rps_list[rps_ctr++] = rps;
     }
     if (rps_ctr == rps_list_size) {
