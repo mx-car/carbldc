@@ -87,9 +87,10 @@ FASTRUN void Driver::run() {
         motors[i]->updateRotaryEncoderPosition(rotaryEncoderValue0);
 
         if (motors[i]->isTimeForPIDControl()) { //every 0.25 sec
-            speed[i] = RotaryMeasurement::getRotationsPerSecond3(*motors[i]);
+            speed[i] = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(*motors[i]);
             motors[i]->updateSpeedRPS(speed[i]);
             motors[i]->updateSpeedScalar(command[i]);
+
             tstamp_state_update = micros();
         }
 
