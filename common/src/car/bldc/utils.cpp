@@ -19,6 +19,8 @@ bool Diagnostics::firstMotorDone = false;
 bool Diagnostics::secondMotorDone = false;
 std::array<Diagnostics::FluxAngleOffsetCalibrationParams, Diagnostics::paramsListSize> Diagnostics::params_list;
 std::array<float, Diagnostics::rps_list_size> Diagnostics::rps_list;
+std::array<float, 100> FFPIDParameterIdentification::rps_list;
+std::array<uint8_t , 100> FFPIDParameterIdentification::rps_to_speed_cmd_helper_list;
 
 
 uint32_t DerivateFilter::getFilteredMeasurement(uint32_t measurement) {
@@ -157,29 +159,18 @@ void Diagnostics::testMotors(Motor( &x)) {
 }
 
 void Diagnostics::speedSweep(Motor &motor) {
-    static uint16_t prev = 0;
     static uint32_t speed_increase_counter = 0;
-    static float speed_command = 10.f;
+    static float speed_command = 12.f;
     static float speed_cumulative_value = 0.f;
     static const uint32_t values_to_add_up = 40;
 
-    for (int i = 1; i < 2 /* numberOfMotors */ ; ++i) {
 
         uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(motor);
-        uint16_t rotaryEncoderValue = RotaryEncoder::SPITransfer(motor);
 
-        uint16_t diff = abs(prev - rotaryEncoderValue);
-        if (diff > 30 && diff < 16365) {
-            Serial.print("d : ");
-            Serial.println(diff);
-            rotaryEncoderValue = rotaryEncoderValue0;
-        }
-        prev = rotaryEncoderValue;
-
-        motor.updateRotaryEncoderPosition(rotaryEncoderValue);
+        motor.updateRotaryEncoderPosition(rotaryEncoderValue0);
 
         if (motor.isTimeForPIDControl()) { //20 times a sec
-            float_t rps = RotaryMeasurement::getRotationsPerSecondPeriodic(motor);
+            float_t rps = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(motor);
             motor.updateSpeedRPS(rps);
             motor.updateSpeedScalar(speed_command);
             if (speed_increase_counter < values_to_add_up) {
@@ -191,6 +182,7 @@ void Diagnostics::speedSweep(Motor &motor) {
                 Serial.print("  RPS : ");
                 Serial.println(average);
                 speed_command += 1.0f;
+                motor.updateSpeedScalar(speed_command);
                 speed_cumulative_value = 0.0f;
 
 
@@ -199,6 +191,7 @@ void Diagnostics::speedSweep(Motor &motor) {
             }
             if (speed_command > 100) {
                 speed_command = 10.0f;
+                motor.updateSpeedScalar(speed_command);
             }
             speed_increase_counter++;
 
@@ -209,7 +202,7 @@ void Diagnostics::speedSweep(Motor &motor) {
         Teensy32::updatePWMPinsDutyCycle(dutyCycles, motor);
 
 
-    }
+
 }
 
 void Diagnostics::primitiveSpinMotor(Motor &motor, uint32_t delayMicroSecs) {
@@ -432,15 +425,66 @@ void Diagnostics::calculateAngleFiner(Motor &motor1, Motor &motor2) {
     }
 
 
+boolean FFPIDParameterIdentification::populate_rps_list(Motor &motor) {
+    static uint32_t speed_increase_counter = 0;
+    static float speed_command = 12.f;
+    static float speed_cumulative_value = 0.f;
+    static const uint32_t values_to_add_up = 40;
+
+
+    uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(motor);
+    motor.updateRotaryEncoderPosition(rotaryEncoderValue0);
+
+    if (motor.isTimeForPIDControl()) { //20 times a sec
+        float_t rps = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(motor);
+        if (speed_increase_counter < values_to_add_up) { // continue adding up
+            speed_cumulative_value += rps;
+        } else if (speed_increase_counter == values_to_add_up) { // collected enough samples, increase speed command
+            float average = speed_cumulative_value / values_to_add_up;
+            rps_list[static_cast<size_t>(speed_command)] = average;
+            speed_command += 1.0f;
+            motor.updateSpeedScalar(speed_command);
+            speed_cumulative_value = 0.0f;
+
+
+        } else if (speed_increase_counter == (values_to_add_up + 5)) { // This to ensure cleaner operation, wait 5 more cycles before starting adding values up
+            speed_increase_counter = 0;
+        }
+        if (speed_command > 100) { // done , sweep complete
+            speed_command = 10.0f;
+            motor.updateSpeedScalar(speed_command);
+            return true;
+        }
+        speed_increase_counter++;
+
+
+    }
+
+    SPWMDutyCycles dutyCycles = SVPWM::calculateDutyCycles(motor);
+    Teensy32::updatePWMPinsDutyCycle(dutyCycles, motor);
+    return false; // not done yet
 
 
 
+}
+
+boolean FFPIDParameterIdentification::constructRPStoSpeedCmdHelperList(std::array<float,100> rps_list) {
+    float max_rps_value = 9.51;
+    float min_rps_value = 1.1; // get from the list
+    float granularity = (max_rps_value - min_rps_value) / rps_list.size(); // size
+    float starting_rps = min_rps_value;
+    std::array<float,100>::iterator lower;
+    for(auto & idx: rps_to_speed_cmd_helper_list){
+        lower = std::lower_bound(rps_list.begin(), rps_list.end(), starting_rps);
+        idx = (lower - rps_list.begin() + 1);
+        starting_rps += granularity;
+        Serial.println(idx);
 
 
+    }
+    return true;
+}
 
-
-
-
-
-
-
+uint8_t FFPIDParameterIdentification::getFFSpeedCommand(float rps) {
+    return rps_to_speed_cmd_helper_list[int( (rps -1.1) * 100.0 / (9.51 - 1.1))]; // get max min from rps_list
+}

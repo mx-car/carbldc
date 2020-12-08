@@ -21,7 +21,19 @@ struct CommandParameters {
     float rps;
     Direction direction;
 };
+class FFPIDParameterIdentification{
+    static std::array<float,100> rps_list;
+    static boolean populate_rps_list(Motor &m);
+public:
+    static uint8_t getFFSpeedCommand(float rps); //this should be implemented on motor basis
+    static boolean constructRPStoSpeedCmdHelperList(std::array<float,100> rps_list);
+    static std::array<uint8_t ,100> rps_to_speed_cmd_helper_list;
 
+
+
+
+
+};
 class DerivateFilter {
 private:
     static float s;

@@ -32,14 +32,18 @@ void Driver::initHardware(uint8_t SPI_CLK) {
 
     Teensy32::initPWMPins();
     RotaryEncoder::initSPI(SPI_CLK);
+
     //initADCconversions();
+#if !CALIBRATE
     while(!getRotorFluxAngleOffsetFromEEPROM());
+#endif
 
     for (int i = 0; i < numberOfMotors; ++i) {
         Teensy32::initInhibitPins(*motors[i]);
         Teensy32::activateInhibitPins(*motors[i]);
         RotaryEncoder::initMotorCSPins(*motors[i]);
     }
+
 }
 
 
@@ -81,7 +85,7 @@ void Driver::initHardware(uint8_t SPI_CLK) {
 FASTRUN void Driver::run() {
 
 
-    for (int i = 0; i < 2 /* numberOfMotors */ ; ++i) {
+    for (int i = 1; i < 2 /* numberOfMotors */ ; ++i) {
 
         uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(*motors[i]);
         motors[i]->updateRotaryEncoderPosition(rotaryEncoderValue0);
@@ -90,6 +94,7 @@ FASTRUN void Driver::run() {
             speed[i] = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(*motors[i]);
             motors[i]->updateSpeedRPS(speed[i]);
             motors[i]->updateSpeedScalar(command[i]);
+            motors[i]->updateSpeedScalar(-30);
 
             tstamp_state_update = micros();
         }
