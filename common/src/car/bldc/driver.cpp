@@ -32,7 +32,6 @@ void Driver::initHardware(uint8_t SPI_CLK) {
 
     Teensy32::initPWMPins();
     RotaryEncoder::initSPI(SPI_CLK);
-
     //initADCconversions();
 #if !CALIBRATE
     while(!getRotorFluxAngleOffsetFromEEPROM());
@@ -85,7 +84,7 @@ void Driver::initHardware(uint8_t SPI_CLK) {
 FASTRUN void Driver::run() {
 
 
-    for (int i = 1; i < 2 /* numberOfMotors */ ; ++i) {
+    for (int i = 0; i < numberOfMotors; ++i) {
 
         uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(*motors[i]);
         motors[i]->updateRotaryEncoderPosition(rotaryEncoderValue0);
