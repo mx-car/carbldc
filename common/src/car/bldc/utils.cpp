@@ -425,6 +425,7 @@ void Diagnostics::calculateAngleFiner(Motor &motor1, Motor &motor2) {
     }
 
 
+
 boolean FFPIDParameterIdentification::populate_rps_list(Motor &motor) {
     static uint32_t speed_increase_counter = 0;
     static float speed_command = 12.f;
@@ -488,3 +489,4 @@ boolean FFPIDParameterIdentification::constructRPStoSpeedCmdHelperList(std::arra
 uint8_t FFPIDParameterIdentification::getFFSpeedCommand(float rps) {
     return rps_to_speed_cmd_helper_list[int( (rps -1.1) * 100.0 / (9.51 - 1.1))]; // get max min from rps_list
 }
+
