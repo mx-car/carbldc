@@ -61,15 +61,12 @@ enum Direction {
 
 class Motor {
 private:
-    const float min_rps;
-    const float max_rps;
-    const float get_min_rps();
-    const float get_max_rps();
-    const std::array<uint8_t ,100> feedForwardCmdList;
-    const std::array<uint8_t ,100> populateFeedForwardCmdListFromEEPROM();
 public:
     Motor(INHPins inhibitPins_, PWMPins initPins_, uint8_t CSPin_, ISPins IsPins_)
-            : min_rps(get_min_rps()),max_rps(get_max_rps()), feedForwardCmdList(populateFeedForwardCmdListFromEEPROM()),inhibitPins(inhibitPins_), initPins(initPins_), CSPin(CSPin_), IsPins(IsPins_) {}
+            : inhibitPins(inhibitPins_), initPins(initPins_), CSPin(CSPin_), IsPins(IsPins_) {}
+    float min_rps;
+    float max_rps;
+    std::array<uint8_t ,100> feedForwardCmdList;
 
     const INHPins inhibitPins;
     const PWMPins initPins;

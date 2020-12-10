@@ -69,6 +69,7 @@ private:
     int64_t tstamp_state_update;        // timestamp  micros();
     int64_t tstamp_command_update;      // timestamp  micros();
     bool getRotorFluxAngleOffsetFromEEPROM();
+    bool getFFPIDParametersFromEEPROM();
 };
 }
 #endif //CAR_BLDC_DRIVER_H

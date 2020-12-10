@@ -415,7 +415,7 @@ void Diagnostics::calculateAngleFiner(Motor &motor1, Motor &motor2) {
                                                               newMotor2FluxAngleStartingValue);
             if(fineTuned.motor2FluxAngle != 10000){
                 finito = true;
-                EEPROM.put(0,fineTuned);
+                EEPROM.put(0,fineTuned); // EEPROM +4, next starts from 4
 
             }
 
@@ -481,12 +481,16 @@ boolean FFPIDParameterIdentification::constructRPStoSpeedCmdHelperList(std::arra
         starting_rps += granularity;
         Serial.println(idx);
 
-
     }
     return true;
 }
 
 uint8_t FFPIDParameterIdentification::getFFSpeedCommand(float rps) {
     return rps_to_speed_cmd_helper_list[int( (rps -1.1) * 100.0 / (9.51 - 1.1))]; // get max min from rps_list
+}
+
+void FFPIDParameterIdentification::writeRPStoCMDListToEEPROM() {
+    EEPROM.put(EEPROM_stack_index,rps_to_speed_cmd_helper_list);
+    EEPROM_stack_index+=rps_to_speed_cmd_helper_list.size();
 }
 

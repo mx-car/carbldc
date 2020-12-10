@@ -5,6 +5,7 @@
 #include "car/bldc/driver.h"
 
 using namespace car::bldc;
+
 /**
  * Singleton
  * @TODO : check Meyer's Singleton
@@ -46,26 +47,31 @@ void Driver::initHardware(uint8_t SPI_CLK) {
 }
 
 
-    void Driver::setCommand(float value, uint8_t motor){
-        command[motor] = value;
-        tstamp_command_update = micros();
-    }
-    const float& Driver::getCommand(uint8_t motor) const{
-        return command[motor];
-    }
-    const float& Driver::getSpeed(uint8_t motor) const{
-        return speed[motor];
+void Driver::setCommand(float value, uint8_t motor) {
+    command[motor] = value;
+    tstamp_command_update = micros();
+}
 
-    }
-    const float& Driver::getTorque(uint8_t motor) const{
-        return torque[motor];
-    }
-    const int64_t& Driver::getTStampMeasurement() const{
-        return tstamp_state_update;
-    }
-    const int64_t& Driver::getTStampCommand() const{
-        return tstamp_state_update;
-    }
+const float &Driver::getCommand(uint8_t motor) const {
+    return command[motor];
+}
+
+const float &Driver::getSpeed(uint8_t motor) const {
+    return speed[motor];
+
+}
+
+const float &Driver::getTorque(uint8_t motor) const {
+    return torque[motor];
+}
+
+const int64_t &Driver::getTStampMeasurement() const {
+    return tstamp_state_update;
+}
+
+const int64_t &Driver::getTStampCommand() const {
+    return tstamp_state_update;
+}
 
 
 /***
@@ -117,13 +123,12 @@ void Driver::registerMotors(Motor *m_ptr) {
 }
 
 bool Driver::getRotorFluxAngleOffsetFromEEPROM() {
-    if(EEPROM.read(0) == 255 && EEPROM.read(3) ){
+    if (EEPROM.read(0) == 255 && EEPROM.read(3)) {
         Serial.println("EEPROM Values not set!!! Check read.me and run the Diagnostics configuration....");
         return false;
-    }
-    else{
+    } else {
         Diagnostics::OptimalFluxAngles x;
-        EEPROM.get(0,x);
+        EEPROM.get(0, x);
         motors[0]->setAngleOffset(x.motor1FluxAngle);
         motors[1]->setAngleOffset(x.motor2FluxAngle);
         Serial.print("Motor0 Flux Angle: ");
@@ -131,6 +136,27 @@ bool Driver::getRotorFluxAngleOffsetFromEEPROM() {
         Serial.print("Motor1 Flux Angle: ");
         Serial.println(x.motor2FluxAngle);
         return true;
+
+    }
+}
+
+bool Driver::getFFPIDParametersFromEEPROM() {
+    if (EEPROM.read(5) == 255 && EEPROM.read(99)) {
+        Serial.println("EEPROM Values not set!!! Check read.me and run the Diagnostics configuration....");
+        return false;
+    } else {
+        uint32_t EEPROM_stack_ix = 4;
+        EEPROM.get(EEPROM_stack_ix, motors[0]->min_rps);
+        EEPROM_stack_ix+=4;
+        EEPROM.get(EEPROM_stack_ix, motors[0]->max_rps);
+        EEPROM_stack_ix+=4;
+        EEPROM.get(EEPROM_stack_ix,motors[0]->feedForwardCmdList);
+        EEPROM_stack_ix+=motors[0]->feedForwardCmdList.size();
+        EEPROM.get(EEPROM_stack_ix, motors[1]->min_rps);
+        EEPROM_stack_ix+=4;
+        EEPROM.get(EEPROM_stack_ix, motors[1]->max_rps);
+        EEPROM_stack_ix+=4;
+        EEPROM.get(EEPROM_stack_ix,motors[1]->feedForwardCmdList);
 
     }
 }
