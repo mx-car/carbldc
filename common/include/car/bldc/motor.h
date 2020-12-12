@@ -81,7 +81,8 @@ public:
     float cumulativePIDError = 0;
     float targetRPS = 0;
     float torque = 0;
-    float speedScalar = 0; // actual speed command 0.. 100
+    bool inhibitor = false;
+    float pwmPower = 0; // target speed between -1.0 and 1.
     uint16_t rotaryEncoderPosition = 0;
     uint16_t previousRotaryEncoderValue = 0; // hold the previous rotaryEncoderValue
     int16_t scaledRotaryEncoderPosition = 0; // accounts for the fieldWeakening
@@ -174,18 +175,18 @@ public:
     /**
      * Motor knows its desired speed value, ranging from 0 to 100.
      * This value, referred as scalar determines the duty cycle
+     * @param power - a value between -1 and 1
+     * @param inh - on true it will decople the speed control like a clutch
+     **/
+    void updatePower(float_t power, bool inh = false);
+
+    /**
+     * Motor knows its desired speed value, ranging from 0 to 100.
+     * This value, referred as scalar determines the duty cycle
      * @param speed - a value between 0 and 100
-     */
-    void updateSpeedScalar(float_t speed) {
-        if(speed > 0){
-            direction = Direction::Forward;
-        }
-        else{
-            direction = Direction::Backward;
-            speed *= -1.0f;
-        }
-        speedScalar = speed;
-    };
+     * @param inh - on true it will decople the speed control like a clutch
+     **/
+    void updatePowerScalar(float_t speed);
 
 
 };

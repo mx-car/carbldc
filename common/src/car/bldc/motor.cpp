@@ -25,3 +25,13 @@ void car::bldc::Motor::updatePreviousRPSMeasurement() {
     speedRPSprevious = speedRPS;
 }
 
+void car::bldc::Motor::updatePower(float_t power, bool inh) {
+    if(power > 0) direction = Direction::Forward;
+    else direction = Direction::Backward;
+    pwmPower = fabs(power);
+    inhibitor = inh;
+};
+
+void car::bldc::Motor::updatePowerScalar(float_t power) {
+    updatePower(power/100.);
+}

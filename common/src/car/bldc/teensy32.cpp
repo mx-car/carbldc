@@ -60,10 +60,9 @@ void Teensy32::updatePWMPinsDutyCycle(const SPWMDutyCycles &x, Motor &motor) {
         FTM0_C7V = x.inDutyCycleV; //Teensy pin 5 -> FTM0_CH7
         FTM0_C4V = x.inDutyCycleU; //Teensy pin  6 -> FTM0_CH4
         FTM0_C2V = x.inDutyCycleW; // Teensy pin 9 -> FTM0_CH2
-
-
     }
-
+    if(motor.inhibitor)  deactivateInhibitPins(motor);
+    else activateInhibitPins(motor);
 }
 
 

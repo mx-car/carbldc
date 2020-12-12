@@ -34,14 +34,15 @@ using namespace car::bldc;
 SPWMDutyCycles SVPWM::calculateDutyCycles(Motor &x){
     //TODO do field weakening
     SPWMDutyCycles temp{0,0,0};
-    if(x.speedScalar > 12) {
-        uint16_t modulationIndexOffset = scaleDutyCyclesToModulationIndex(x.speedScalar);
+    float speedScalar = x.pwmPower*100.;
+    if(speedScalar > 12) {
+        uint16_t modulationIndexOffset = scaleDutyCyclesToModulationIndex(speedScalar);
         uint16_t base =
                 (x.scaledRotaryEncoderPosition + x.angleOffset + (direction_offset  * x.direction ) + LUTSize) % LUTSize;
         uint16_t LUTIndexW = base;
         uint16_t LUTIndexV = (base + (LUTSize / 3)) % LUTSize;
         uint16_t LUTIndexU = (base + (2 * (LUTSize / 3))) % LUTSize;
-        float intermediateMultiplier = x.speedScalar * 0.01f;
+        float intermediateMultiplier = speedScalar * 0.01f;
         temp.inDutyCycleW = static_cast<uint16_t >(LUT[LUTIndexW] * intermediateMultiplier) + modulationIndexOffset;
         temp.inDutyCycleU = static_cast<uint16_t >(LUT[LUTIndexV] * intermediateMultiplier) + modulationIndexOffset;
         temp.inDutyCycleV = static_cast<uint16_t >(LUT[LUTIndexU] * intermediateMultiplier) + modulationIndexOffset;

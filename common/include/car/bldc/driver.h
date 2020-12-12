@@ -30,7 +30,13 @@ public:
      * @param value 0 .. 1
      * @param motor motor id
      **/
-    void setCommand(float value, uint8_t motor);
+    void setCommand(float value, bool inh, uint8_t motor);
+    /**
+     * Returns the true if the inhibitor is active
+     * @param motor motor id
+     * @return motor inhibitor true means clutch released and false clutch pressed
+     **/
+    bool getInhibitor(uint8_t motor) const;
     /**
      * Returns the current motor power value command
      * @param motor motor id
@@ -64,6 +70,7 @@ public:
 private:
 
     float command[2];                   // command power between 0 and 1
+    bool inhibitor[2];                  // inhibitor - clutch
     float speed[2];                     // speed [rps]
     float torque[2];                    // current power consumption
     int64_t tstamp_state_update;        // timestamp  micros();

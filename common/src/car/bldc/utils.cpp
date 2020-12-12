@@ -172,7 +172,7 @@ void Diagnostics::speedSweep(Motor &motor) {
         if (motor.isTimeForPIDControl()) { //20 times a sec
             float_t rps = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(motor);
             motor.updateSpeedRPS(rps);
-            motor.updateSpeedScalar(speed_command);
+            motor.updatePowerScalar(speed_command);
             if (speed_increase_counter < values_to_add_up) {
                 speed_cumulative_value += rps;
             } else if (speed_increase_counter == values_to_add_up) {
@@ -182,7 +182,7 @@ void Diagnostics::speedSweep(Motor &motor) {
                 Serial.print("  RPS : ");
                 Serial.println(average);
                 speed_command += 1.0f;
-                motor.updateSpeedScalar(speed_command);
+                motor.updatePowerScalar(speed_command);
                 speed_cumulative_value = 0.0f;
 
 
@@ -191,7 +191,7 @@ void Diagnostics::speedSweep(Motor &motor) {
             }
             if (speed_command > 100) {
                 speed_command = 10.0f;
-                motor.updateSpeedScalar(speed_command);
+                motor.updatePowerScalar(speed_command);
             }
             speed_increase_counter++;
 
@@ -245,7 +245,7 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
     uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
     m.updateRotaryEncoderPosition(rotaryEncoderValue0);
     if (!finito) {
-        m.updateSpeedScalar(motor_speed_scalar);
+        m.updatePowerScalar(motor_speed_scalar);
     }
 
     if (m.isTimeForPIDControl()) { //every 0.25 sec
@@ -261,7 +261,7 @@ void Diagnostics::calculateAndPrintOptimalFluxAngle(Motor &m) {
         if (param_ctr == params_list.size()) {
             printParamsList(params_list);
             finito = true;
-            m.updateSpeedScalar(10);
+            m.updatePowerScalar(10);
         }
     }
 
@@ -362,7 +362,7 @@ bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
     uint16_t rotaryEncoderValue0 = RotaryEncoder::SPITransfer(m);
     m.updateRotaryEncoderPosition(rotaryEncoderValue0);
     if (!finito) {
-        m.updateSpeedScalar(motor_speed_scalar);
+        m.updatePowerScalar(motor_speed_scalar);
     }
 
     if (m.isTimeForPIDControl()) { //every 0.25 sec
@@ -377,7 +377,7 @@ bool Diagnostics::gatherDataForOptimalFluxAngleCalculation(Motor &m) {
         params_list[param_ctr++] = calculateParams(angle_offset, rps_list);
         if (param_ctr == params_list.size()) {
             finito = true;
-            m.updateSpeedScalar(10);
+            m.updatePowerScalar(10);
             rps_ctr = 0;
             param_ctr = 0;
             angle_offset = 0;
@@ -444,7 +444,7 @@ boolean FFPIDParameterIdentification::populate_rps_list(Motor &motor) {
             float average = speed_cumulative_value / values_to_add_up;
             rps_list[static_cast<size_t>(speed_command)] = average;
             speed_command += 1.0f;
-            motor.updateSpeedScalar(speed_command);
+            motor.updatePowerScalar(speed_command);
             speed_cumulative_value = 0.0f;
 
 
@@ -453,7 +453,7 @@ boolean FFPIDParameterIdentification::populate_rps_list(Motor &motor) {
         }
         if (speed_command > 100) { // done , sweep complete
             speed_command = 10.0f;
-            motor.updateSpeedScalar(speed_command);
+            motor.updatePowerScalar(speed_command);
             return true;
         }
         speed_increase_counter++;

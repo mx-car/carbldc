@@ -45,9 +45,12 @@ void Driver::initHardware(uint8_t SPI_CLK) {
 
 }
 
-
-    void Driver::setCommand(float value, uint8_t motor){
+    bool Driver::getInhibitor(uint8_t motor) const{
+        return inhibitor[motor];
+    }
+    void Driver::setCommand(float value, bool inh, uint8_t motor){
         command[motor] = value;
+        inhibitor[motor] = inh;
         tstamp_command_update = micros();
     }
     const float& Driver::getCommand(uint8_t motor) const{
@@ -92,9 +95,7 @@ FASTRUN void Driver::run() {
         if (motors[i]->isTimeForPIDControl()) { //every 0.25 sec
             speed[i] = RotaryMeasurement::getRotationsPerSecondWithTimeDifference(*motors[i]);
             motors[i]->updateSpeedRPS(speed[i]);
-            motors[i]->updateSpeedScalar(command[i]);
-            motors[i]->updateSpeedScalar(-30);
-
+            motors[i]->updatePower(command[i], inhibitor[i]);
             tstamp_state_update = micros();
         }
 
