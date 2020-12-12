@@ -7,6 +7,7 @@
 
 #include <Arduino.h>
 #include <array>
+#include "PIDController.h"
 
 namespace car::bldc{
 
@@ -64,25 +65,24 @@ private:
 public:
     Motor(INHPins inhibitPins_, PWMPins initPins_, uint8_t CSPin_, ISPins IsPins_)
             : inhibitPins(inhibitPins_), initPins(initPins_), CSPin(CSPin_), IsPins(IsPins_) {}
-    float min_rps;
-    float max_rps;
-    std::array<uint8_t ,100> feedForwardCmdList;
+    MotorFFPIDParameters FFPIDparams;
 
     const INHPins inhibitPins;
     const PWMPins initPins;
     const uint8_t CSPin;
     const ISPins IsPins;
     Direction direction = Direction::Forward;
-    float speedRPS = 0;
-    float speedRPSprevious = 0;
-    float cumulativePIDError = 0;
+    float currentRPS = 0;
+    float previousRPS = 0;
     float targetRPS = 0;
+
+    float cumulativePIDError = 0;
+
     float torque = 0;
     float speedScalar = 0; // actual speed command 0.. 100
     uint16_t rotaryEncoderPosition = 0;
     uint16_t previousRotaryEncoderValue = 0; // hold the previous rotaryEncoderValue
     int16_t scaledRotaryEncoderPosition = 0; // accounts for the fieldWeakening
-    int32_t encoderCumulativeValue = 0;
     int16_t angleOffset = 0;
     uint16_t PIDCounter = 0;
     int32_t leftWheel = 1;
@@ -165,7 +165,7 @@ public:
 
     void updateSpeedRPS(float_t rps) {
         updatePreviousRPSMeasurement();
-        speedRPS = rps;
+        currentRPS = rps;
     }
 
     /**

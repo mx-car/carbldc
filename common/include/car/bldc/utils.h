@@ -25,11 +25,13 @@ class FFPIDParameterIdentification{
     static std::array<float,100> rps_list;
     static boolean populate_rps_list(Motor &m);
     static inline uint32_t EEPROM_stack_index =4 ;
+    static float getMinRps(std::array<float,100> & rps_list);
+    static float getMaxRps(std::array<float,100> & rps_list);
 public:
     static uint8_t getFFSpeedCommand(float rps); //this should be implemented on motor basis
-    static boolean constructRPStoSpeedCmdHelperList(std::array<float,100> rps_list);
+    static boolean constructRPStoSpeedCmdHelperList(std::array<float,100> & rps_list);
     static std::array<uint8_t ,100> rps_to_speed_cmd_helper_list;
-    static void writeRPStoCMDListToEEPROM();
+    static void WriteFFPIDParamsToEEPROM(MotorFFPIDParameters & param);
 
 
 

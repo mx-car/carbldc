@@ -5,10 +5,10 @@
 #include <car/bldc/motor.h>
 
 uint8_t car::bldc::Motor::getFeedForwardPIDTerm() {
-    return feedForwardCmdList[int( (targetRPS - min_rps) * 100.0f / (max_rps - min_rps))];
+    return FFPIDparams.RPStoSpeedCmdMap[int( (targetRPS - FFPIDparams.rps_min) * 100.0f / (FFPIDparams.rps_max - FFPIDparams.rps_min))];
 }
 
 void car::bldc::Motor::updatePreviousRPSMeasurement() {
-    speedRPSprevious = speedRPS;
+    previousRPS = currentRPS;
 }
 

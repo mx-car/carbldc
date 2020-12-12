@@ -469,9 +469,9 @@ boolean FFPIDParameterIdentification::populate_rps_list(Motor &motor) {
 
 }
 
-boolean FFPIDParameterIdentification::constructRPStoSpeedCmdHelperList(std::array<float,100> rps_list) {
-    float max_rps_value = 9.51;
-    float min_rps_value = 1.1; // get from the list
+boolean FFPIDParameterIdentification::constructRPStoSpeedCmdHelperList(std::array<float,100> & rps_list) {
+    float max_rps_value = getMaxRps(rps_list);
+    float min_rps_value = getMinRps(rps_list); // get from the list
     float granularity = (max_rps_value - min_rps_value) / rps_list.size(); // size
     float starting_rps = min_rps_value;
     std::array<float,100>::iterator lower;
@@ -485,12 +485,24 @@ boolean FFPIDParameterIdentification::constructRPStoSpeedCmdHelperList(std::arra
     return true;
 }
 
-uint8_t FFPIDParameterIdentification::getFFSpeedCommand(float rps) {
-    return rps_to_speed_cmd_helper_list[int( (rps -1.1) * 100.0 / (9.51 - 1.1))]; // get max min from rps_list
+
+void FFPIDParameterIdentification::WriteFFPIDParamsToEEPROM(MotorFFPIDParameters & param) {
+    EEPROM.put(EEPROM_stack_index,rps_to_speed_cmd_helper_list);
+    EEPROM_stack_index+=sizeof(MotorFFPIDParameters);
 }
 
-void FFPIDParameterIdentification::writeRPStoCMDListToEEPROM() {
-    EEPROM.put(EEPROM_stack_index,rps_to_speed_cmd_helper_list);
-    EEPROM_stack_index+=rps_to_speed_cmd_helper_list.size();
+float FFPIDParameterIdentification::getMinRps(std::array<float, 100> &rps_list) {
+    float min_rps = 0.f;
+    for(float rps: rps_list){
+        if(rps > 0.0f){
+            min_rps = rps;
+            break;
+        }
+    }
+    return min_rps;
+}
+
+float FFPIDParameterIdentification::getMaxRps(std::array<float, 100> &rps_list) {
+    return rps_list[99];
 }
 
