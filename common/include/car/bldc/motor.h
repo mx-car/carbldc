@@ -173,20 +173,12 @@ public:
     }
 
     /**
-     * Motor knows its desired speed value, ranging from 0 to 100.
-     * This value, referred as scalar determines the duty cycle
+     * Motor knows its desired power/pwm value, ranging from -1.0 to 1.0.
+     * This value multiplied by 100, referred as scalar determines the duty cycle
      * @param power - a value between -1 and 1
      * @param inh - on true it will decople the speed control like a clutch
      **/
     void updatePower(float_t power, bool inh = false);
-
-    /**
-     * Motor knows its desired speed value, ranging from 0 to 100.
-     * This value, referred as scalar determines the duty cycle
-     * @param speed - a value between 0 and 100
-     * @param inh - on true it will decople the speed control like a clutch
-     **/
-    void updatePowerScalar(float_t speed);
 
 
 };

@@ -31,7 +31,3 @@ void car::bldc::Motor::updatePower(float_t power, bool inh) {
     pwmPower = fabs(power);
     inhibitor = inh;
 };
-
-void car::bldc::Motor::updatePowerScalar(float_t power) {
-    updatePower(power/100.);
-}
